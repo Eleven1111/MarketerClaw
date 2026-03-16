@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: openclaw-skill-showcase
+    runtime: node
+    plan: free
+    autoDeploy: true
+    buildCommand: npm ci && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
