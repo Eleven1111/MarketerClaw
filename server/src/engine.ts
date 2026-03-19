@@ -910,10 +910,12 @@ function collectWarnings(roles: ConfiguredRole[]): string[] {
     }
   }
 
+  const hasOpenAiBaseFallback = Boolean(process.env.OPENAI_BASE_URL?.trim());
+
   for (const role of roles) {
-    if (role.model.mode === "openai" && !role.model.baseUrl) {
+    if (role.model.mode === "openai" && !role.model.baseUrl && !hasOpenAiBaseFallback) {
       warnings.push(
-        `${role.displayName} 处于 OpenAI 兼容模式但未配置 baseUrl，已自动使用模拟输出。`
+        `${role.displayName} 处于 OpenAI 兼容模式但未配置 baseUrl，且服务端缺少 OPENAI_BASE_URL。`
       );
     }
   }

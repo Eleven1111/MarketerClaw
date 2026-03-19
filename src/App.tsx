@@ -73,6 +73,9 @@ const PLATFORM_ASSET_LABELS = {
   xiaohongshu_note: "小红书笔记卡",
   douyin_script: "抖音脚本卡",
   wechat_article: "微信长文框架",
+  weibo_post: "微博内容卡",
+  bilibili_video: "B站测评/种草卡",
+  private_domain: "私域承接方案",
   generic_asset: "平台适配资产"
 } as const;
 
@@ -121,7 +124,7 @@ function defaultRoleConfig(role: RoleDefinition): ConfiguredRole {
     enabled: true,
     displayName: role.label,
     model: {
-      mode: "mock",
+      mode: "openai",
       baseUrl: "",
       apiKey: "",
       model: "",
@@ -197,32 +200,20 @@ function providerHint(mode: ModelMode): {
   modelPlaceholder: string;
   helper: string;
 } {
-  switch (mode) {
-    case "openai":
-      return {
-        baseUrlPlaceholder: "https://api.openai.com",
-        modelPlaceholder: "gpt-4.1-mini",
-        helper: "OpenAI 兼容模式：可直接用官方接口；apiKey 可在页面填写，也可由服务端环境变量提供。"
-      };
-    case "google":
-      return {
-        baseUrlPlaceholder: "https://generativelanguage.googleapis.com/v1beta/openai（可留空）",
-        modelPlaceholder: "gemini-2.5-flash",
-        helper: "Google Gemini 模式：默认走官方 OpenAI 兼容端点；apiKey 可由服务端环境变量提供。"
-      };
-    case "volcengine":
-      return {
-        baseUrlPlaceholder: "https://ark.cn-beijing.volces.com/api/v3（可留空）",
-        modelPlaceholder: "ep-xxxxxxxx 或 doubao/seed 模型名",
-        helper: "火山引擎模式：支持 Doubao/Seed，建议填写 endpoint id；apiKey 可由服务端环境变量提供。"
-      };
-    default:
-      return {
-        baseUrlPlaceholder: "",
-        modelPlaceholder: "",
-        helper: ""
-      };
+  if (mode === "openai") {
+    return {
+      baseUrlPlaceholder: "http://127.0.0.1:8999 或 https://api.openai.com",
+      modelPlaceholder: "bailian/glm-5",
+      helper:
+        "默认复用服务端 OPENAI_BASE_URL / OPENAI_API_KEY / OPENAI_MODEL。OpenClaw 本机代理请填 http://127.0.0.1:8999；系统会自动补成 /v1/chat/completions。"
+    };
   }
+
+  return {
+    baseUrlPlaceholder: "",
+    modelPlaceholder: "",
+    helper: ""
+  };
 }
 
 function normalizeStageId(input: string, index: number): string {
@@ -1861,10 +1852,8 @@ function App() {
                           }))
                         }
                       >
+                        <option value="openai">OpenClaw / OpenAI 兼容入口</option>
                         <option value="mock">Mock（本地模拟）</option>
-                        <option value="openai">OpenAI 兼容 API</option>
-                        <option value="google">Google Gemini</option>
-                        <option value="volcengine">火山引擎 Doubao / Seed</option>
                       </select>
                     </label>
 

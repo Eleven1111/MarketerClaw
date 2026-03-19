@@ -25,10 +25,7 @@ export type GenerateTextInput = {
   contextLines: string[];
 };
 
-type ApiProvider = "openai" | "google" | "volcengine";
-
 type ResolvedProviderConfig = {
-  provider: ApiProvider;
   endpointBase: string;
 };
 
@@ -280,151 +277,6 @@ function buildMockOutput(input: GenerateTextInput): string {
   }
 }
 
-        `内容矩阵（三层结构）：`,
-        ``,
-        `▸ 第一层：认知钩子（${primaryPlatform} 优先发布）`,
-        `  · 角度A：「${campaign.targetAudience} 使用 ${campaign.productName} 的真实变化」——场景纪录风，重真实不求完美`,
-        `  · 角度B：「为什么放弃了 ${competitor1?.competitor ?? "竞品"}，选了 ${campaign.productName}」——对比种草风，突出可攻击弱点`,
-        `  · 钩子示例：「身为 ${campaign.targetAudience}，你有没有遇到过...」`,
-        ``,
-        `▸ 第二层：信任建立（${primaryPlatform} + ${secondaryPlatformList}）`,
-        `  · 核心支撑：「${proof1}」——用具体细节而非口号式表达`,
-        `  · 达人建议：中腰部 KOC 优先于头部 KOL，信任感更强、成本更可控`,
-        ``,
-        `▸ 第三层：转化收口`,
-        `  · CTA 组合：收藏笔记 + 评论区关键词 + 主页转化入口，分层承接不同意向用户`,
-        `  · 利益设计：结合「${campaign.budgetRange}」，设计首购体验或限时优惠入口`,
-        ``,
-        `语气要求：全程「${campaign.brandTone}」，用场景细节代替口号，严禁绝对化用语。`,
-      ].join("
-");
-
-    case "channelOperator":
-      return [
-        `【渠道投放 · ${input.outputTitle}】`,
-        ``,
-        `节奏：预热（D-7）→ 引爆（D-3 至活动日）→ 收口（最后 24 小时）`,
-        ``,
-        `主平台 ${primaryPlatform} 动作：`,
-        `· 预热：铺 3-5 篇 KOC 种草，覆盖核心搜索词`,
-        `· 引爆：信息流 + 搜索广告同步开启，配合 KOL 联动扩散`,
-        `· 约束处理：${campaign.channelConstraints || "暂无特殊约束，建议备好 AB 素材快速测试完播率和点击率。"}`,
-        ``,
-        `次级平台 ${secondaryPlatformList} 动作：`,
-        `· 复用主平台高表现素材，适配格式后分发，主要承接搜索流量做转化补位`,
-        ``,
-        `KPI 监测：`,
-        `· 每日早会前过一遍核心数据（曝光→互动→点击→转化），波动超 20% 当天调整`,
-        `· 围绕「${campaign.kpis}」设每周 checkpoint，决定是否追加或暂停预算`,
-      ].join("
-");
-
-    case "brandReviewer":
-      return [
-        `【品牌审校 · ${input.outputTitle}】`,
-        ``,
-        `结论：通过（附修改建议）`,
-        ``,
-        `发现：`,
-        `· 整体语气与「${campaign.brandTone}」方向基本一致，「${proof1}」传递较为清晰。`,
-        `· 部分 CTA 有强促销感（"立即抢购"类），与品牌调性存在冲突，建议调整。`,
-        `· 「${proof2}」在内容中出现频率不足，建议在种草层补充更多具体使用场景。`,
-        ``,
-        `修改建议：`,
-        `· 把"限时/立即"类 CTA 调整为"查看完整体验/了解更多"，保留转化入口同时降低销售感。`,
-        `· "可信赖"等品牌语言需要通过具体细节证明，而非直接说出来。`,
-        `· 建议在 1-2 篇种草内容中加入真实用户视角细节，而非功能参数堆砌。`,
-      ].join("
-");
-
-    case "complianceGuard":
-      return [
-        `【合规审查 · ${input.outputTitle}】`,
-        ``,
-        `结论：通过（附高风险提示）`,
-        ``,
-        `风险项（中等风险，须逐条核对后再上线）：`,
-        `· "效果、改善、修复、立刻见效"等词 → 需替换为可量化或可验证的说法。`,
-        `· 大促划线价须有历史销售凭证，否则违反《广告法》第28条。`,
-        `· 风险边界参考：${campaign.riskNotes || "⚠️ 未填写——合规审查缺少基准，建议补充禁用词清单。"}`,
-        ``,
-        `平台规则：`,
-        `· ${primaryPlatform}：正文中禁止出现联系方式（手机号/微信号），违规将导致限流或删帖。`,
-        `· 健康/美妆功效类内容——须避免"治疗、修复、临床验证"等医疗类词汇（非注册医疗产品禁用）。`,
-        ``,
-        `建议：正式发布前由具备资质的法务人员逐条复核，不建议仅依赖本系统输出直接上线。`,
-      ].join("
-");
-
-    case "dataAnalyst":
-      return [
-        `【数据分析 · ${input.outputTitle}】`,
-        ``,
-        `KPI 框架（基于「${campaign.kpis}」展开）：`,
-        `· 曝光/内容层：互动率（点赞+收藏+评论/曝光），行业参考值 3-8%，低于此值需优化选题和钩子`,
-        `· 点击/意向层：商品详情页点击率，判断内容能否有效激发购买意愿`,
-        `· 转化层：首购率/留资率，直接关联「${campaign.objective}」是否达成`,
-        ``,
-        `预算分配建议（基于「${campaign.budgetRange}」量级）：`,
-        `· 约 40%：内容生产与 KOC/KOL 合作（种草）`,
-        `· 约 35%：平台付费推广（信息流/搜索，引爆期集中投入）`,
-        `· 约 15%：AB 测试预算（快速测试素材与人群包）`,
-        `· 约 10%：弹性预算（追加高表现素材）`,
-        ``,
-        `复盘节点：活动第3天、第7天和结束后48小时内各做一次数据回顾，按信号快速调整资源分配。`,
-      ].join("
-");
-
-    case "martechOperator":
-      return [
-        `【营销自动化 · ${input.outputTitle}】`,
-        ``,
-        `链路配置建议：`,
-        `· 落地页：UTM 参数完整区分来源（${primaryPlatform} / ${secondaryPlatformList}），实现跨平台归因对比`,
-        `· 表单：字段精简（姓名 + 手机 + 意向等级），字段越多提交率越低`,
-        ``,
-        `自动化流程（优先级排序）：`,
-        `1. 提交表单 → 5 分钟内发送欢迎语 + 核心资料（企业微信或短信）`,
-        `2. 72 小时未互动 → 推送一次干货内容（不直接促销）`,
-        `3. 活动结束前 24 小时 → 倒计时提醒，含明确利益点`,
-        ``,
-        `数据闭环：平台广告账户与 CRM 打通，实现从内容点击到成交的全链路归因，为下次 campaign 决策提供数据支撑。`,
-      ].join("
-");
-
-    case "knowledgeManager":
-      return [
-        `【知识运营 · ${input.outputTitle}】`,
-        ``,
-        `本次可沉淀的四类团队资产：`,
-        ``,
-        `1. 内容模板库`,
-        `   · 提炼「${primaryPlatform}」高互动内容的结构（钩子 + 产品证明 + CTA 动作）`,
-        `   · 按角度分类：对比种草型 / 场景纪录型 / 达人评测型`,
-        ``,
-        `2. 人群洞察卡`,
-        `   · 记录「${campaign.targetAudience}」的触媒偏好、高互动话题和语言习惯`,
-        ``,
-        `3. 风险禁用词清单`,
-        `   · 整理合规审查发现的高频问题 → 《禁用表达库》，所有成员写内容前对照一遍`,
-        ``,
-        `4. 复盘卡片（一页纸）`,
-        `   · 结构：目标→结果→成功因子→问题→下次实验方向`,
-        `   · 归档至团队知识库，作为下次类似项目的默认参考起点`,
-      ].join("
-");
-
-    default:
-      return [
-        `【${input.roleLabel} · ${input.outputTitle}】`,
-        ``,
-        `当前任务：${input.intent}`,
-        `· 对照「${campaign.objective}」确认每条产出直接服务于核心指标`,
-        `· 输出前做品牌调性和合规自查，避免返工`,
-      ].join("
-");
-  }
-}
 
 function stripEndpointPath(baseUrl: string): string {
   const trimmed = baseUrl.trim().replace(/\/$/, "");
@@ -452,34 +304,18 @@ function normalizeOpenAiBase(baseUrl: string): string {
   return `${stripped}/v1`;
 }
 
-function normalizeProviderBase(baseUrl: string): string {
-  return stripEndpointPath(baseUrl).replace(/\/$/, "");
-}
-
 function fallbackApiKeyForMode(mode: RoleModelConfig["mode"]): string {
-  switch (mode) {
-    case "openai":
-      return process.env.OPENAI_API_KEY?.trim() ?? "";
-    case "google":
-      return process.env.GOOGLE_API_KEY?.trim() ?? "";
-    case "volcengine":
-      return process.env.VOLCENGINE_API_KEY?.trim() ?? "";
-    default:
-      return "";
+  if (mode === "openai") {
+    return process.env.OPENAI_API_KEY?.trim() ?? "";
   }
+  return "";
 }
 
 function fallbackModelForMode(mode: RoleModelConfig["mode"]): string {
-  switch (mode) {
-    case "openai":
-      return process.env.OPENAI_MODEL?.trim() ?? "";
-    case "google":
-      return process.env.GOOGLE_MODEL?.trim() ?? "";
-    case "volcengine":
-      return process.env.VOLCENGINE_MODEL?.trim() ?? "";
-    default:
-      return "";
+  if (mode === "openai") {
+    return process.env.OPENAI_MODEL?.trim() ?? "";
   }
+  return "";
 }
 
 function resolveRuntimeConfig(config: RoleModelConfig): RuntimeProviderConfig {
@@ -503,37 +339,18 @@ function resolveRuntimeConfig(config: RoleModelConfig): RuntimeProviderConfig {
 }
 
 function resolveProviderConfig(config: RuntimeProviderConfig): ResolvedProviderConfig {
-  if (config.mode === "openai") {
-    const endpointBase = normalizeOpenAiBase(config.baseUrl);
-    if (!endpointBase) {
-      throw new Error("Missing baseUrl for openai provider");
-    }
-    return {
-      provider: "openai",
-      endpointBase
-    };
+  if (config.mode !== "openai") {
+    throw new Error(`Unsupported model mode: ${config.mode}`);
   }
 
-  if (config.mode === "google") {
-    const endpointBase =
-      normalizeProviderBase(config.baseUrl) ||
-      "https://generativelanguage.googleapis.com/v1beta/openai";
-    return {
-      provider: "google",
-      endpointBase
-    };
+  const endpointBase = normalizeOpenAiBase(config.baseUrl);
+  if (!endpointBase) {
+    throw new Error("Missing baseUrl for openai provider");
   }
 
-  if (config.mode === "volcengine") {
-    const endpointBase =
-      normalizeProviderBase(config.baseUrl) || "https://ark.cn-beijing.volces.com/api/v3";
-    return {
-      provider: "volcengine",
-      endpointBase
-    };
-  }
-
-  throw new Error(`Unsupported model mode: ${config.mode}`);
+  return {
+    endpointBase
+  };
 }
 
 async function callOpenAiCompatible(
@@ -552,10 +369,6 @@ async function callOpenAiCompatible(
       Authorization: `Bearer ${config.apiKey}`
     };
 
-    if (resolved.provider === "google") {
-      headers["x-goog-api-key"] = config.apiKey;
-    }
-
     const response = await fetch(url, {
       method: "POST",
       headers,
@@ -571,7 +384,7 @@ async function callOpenAiCompatible(
     if (!response.ok) {
       const body = await response.text();
       throw new Error(
-        `${resolved.provider} request failed (${response.status}): ${body.slice(0, 200)}`
+        `openai-compatible request failed (${response.status}): ${body.slice(0, 200)}`
       );
     }
 

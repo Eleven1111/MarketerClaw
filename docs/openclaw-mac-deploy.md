@@ -46,16 +46,10 @@ PORT=8788
 NODE_ENV=production
 APP_BASE_PATH=/marketing
 
-# 可选：如果你希望服务端统一托管模型密钥，可配置这些变量
-OPENAI_API_KEY=
-OPENAI_MODEL=gpt-4.1-mini
-OPENAI_BASE_URL=
-
-GOOGLE_API_KEY=
-GOOGLE_MODEL=
-
-VOLCENGINE_API_KEY=
-VOLCENGINE_MODEL=
+# 推荐：统一复用 OpenClaw 已配置的 OpenAI-compatible 入口
+OPENAI_API_KEY=local
+OPENAI_MODEL=bailian/glm-5
+OPENAI_BASE_URL=http://127.0.0.1:8999
 ```
 
 说明：

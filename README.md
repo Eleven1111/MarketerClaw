@@ -100,14 +100,10 @@ APP_BASE_PATH=/marketing PORT=8788 NODE_ENV=production npm run start
 - `http://localhost:8788/marketing`
 - `http://localhost:8788/marketing/api/health`
 
-如果服务端已经配置了模型环境变量，页面里的 `apiKey` 可以留空：
+如果服务端已经配置了统一模型环境变量，页面里的 `Base URL / apiKey / model` 都可以留空：
+- `OPENAI_BASE_URL`（推荐本机 OpenClaw 代理：`http://127.0.0.1:8999`；系统会自动补 `/v1/chat/completions`）
 - `OPENAI_API_KEY`
 - `OPENAI_MODEL`
-- `OPENAI_BASE_URL`（可选，默认 `https://api.openai.com`）
-- `GOOGLE_API_KEY`
-- `GOOGLE_MODEL`
-- `VOLCENGINE_API_KEY`
-- `VOLCENGINE_MODEL`
 
 工作流历史会落盘到 `server/data/workflows`。新版本会自动清除落盘文件中的明文 `apiKey`，避免把密钥跟着部署包迁移。
 
@@ -174,15 +170,13 @@ APP_BASE_PATH=/marketing PORT=8788 NODE_ENV=production npm run start
 ## 模型接入
 
 每个角色支持以下模型模式：
+- `openai`（默认）
 - `mock`
-- `openai`
-- `google`
-- `volcengine`
 
 其中：
+- 统一复用 `OPENAI_BASE_URL` / `OPENAI_API_KEY` / `OPENAI_MODEL`
 - OpenAI 兼容模式请求：`{baseUrl}/v1/chat/completions`
-- Google 默认端点：`https://generativelanguage.googleapis.com/v1beta/openai`
-- 火山引擎默认端点：`https://ark.cn-beijing.volces.com/api/v3`
+- 当 `OPENAI_BASE_URL=http://127.0.0.1:8999` 时，实际调用路由是 `http://127.0.0.1:8999/v1/chat/completions`
 
 ## 当前定位
 

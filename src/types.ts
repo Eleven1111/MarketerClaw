@@ -24,7 +24,7 @@ export type TemplateId =
   | "weekly_report_cn"
   | "custom";
 
-export type ModelMode = "mock" | "openai" | "google" | "volcengine";
+export type ModelMode = "mock" | "openai";
 
 export type RoleDefinition = {
   id: RoleId;
@@ -280,6 +280,9 @@ export type PlatformAsset = {
     | "xiaohongshu_note"
     | "douyin_script"
     | "wechat_article"
+    | "weibo_post"
+    | "bilibili_video"
+    | "private_domain"
     | "generic_asset";
   title: string;
   hook: string;

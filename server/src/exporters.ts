@@ -6,6 +6,9 @@ const PLATFORM_ASSET_LABELS = {
   xiaohongshu_note: "小红书笔记卡",
   douyin_script: "抖音脚本卡",
   wechat_article: "微信长文框架",
+  weibo_post: "微博内容卡",
+  bilibili_video: "B站测评/种草卡",
+  private_domain: "私域承接方案",
   generic_asset: "平台适配资产"
 } as const;
 

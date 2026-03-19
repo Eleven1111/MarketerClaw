@@ -4,35 +4,23 @@ import { REQUIRED_ROLE_IDS, ROLE_IDS, TEMPLATE_IDS, type RoleId } from "./catalo
 const roleIdSchema = z.enum(ROLE_IDS);
 const templateIdSchema = z.enum(TEMPLATE_IDS);
 
-function hasProviderApiKeyFallback(mode: "mock" | "openai" | "google" | "volcengine"): boolean {
-  switch (mode) {
-    case "openai":
-      return Boolean(process.env.OPENAI_API_KEY?.trim());
-    case "google":
-      return Boolean(process.env.GOOGLE_API_KEY?.trim());
-    case "volcengine":
-      return Boolean(process.env.VOLCENGINE_API_KEY?.trim());
-    default:
-      return false;
+function hasProviderApiKeyFallback(mode: "mock" | "openai"): boolean {
+  if (mode === "openai") {
+    return Boolean(process.env.OPENAI_API_KEY?.trim());
   }
+  return false;
 }
 
-function hasProviderModelFallback(mode: "mock" | "openai" | "google" | "volcengine"): boolean {
-  switch (mode) {
-    case "openai":
-      return Boolean(process.env.OPENAI_MODEL?.trim());
-    case "google":
-      return Boolean(process.env.GOOGLE_MODEL?.trim());
-    case "volcengine":
-      return Boolean(process.env.VOLCENGINE_MODEL?.trim());
-    default:
-      return false;
+function hasProviderModelFallback(mode: "mock" | "openai"): boolean {
+  if (mode === "openai") {
+    return Boolean(process.env.OPENAI_MODEL?.trim());
   }
+  return false;
 }
 
 const roleModelConfigSchema = z
   .object({
-    mode: z.enum(["mock", "openai", "google", "volcengine"]).default("mock"),
+    mode: z.enum(["mock", "openai"]).default("openai"),
     baseUrl: z.string().trim().default(""),
     apiKey: z.string().trim().default(""),
     model: z.string().trim().default(""),
@@ -143,40 +131,6 @@ export const createWorkflowRequestSchema = z
         });
       }
       seenIds.add(role.roleId);
-
-      if (role.model.mode === "google") {
-        if (!role.model.apiKey && !hasProviderApiKeyFallback(role.model.mode)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["roles"],
-            message: `角色 ${role.displayName} 使用 Google Gemini 模式时需要 apiKey，或在服务端配置 GOOGLE_API_KEY`
-          });
-        }
-        if (!role.model.model && !hasProviderModelFallback(role.model.mode)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["roles"],
-            message: `角色 ${role.displayName} 使用 Google Gemini 模式时需要 model，或在服务端配置 GOOGLE_MODEL`
-          });
-        }
-      }
-
-      if (role.model.mode === "volcengine") {
-        if (!role.model.apiKey && !hasProviderApiKeyFallback(role.model.mode)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["roles"],
-            message: `角色 ${role.displayName} 使用火山引擎模式时需要 apiKey，或在服务端配置 VOLCENGINE_API_KEY`
-          });
-        }
-        if (!role.model.model && !hasProviderModelFallback(role.model.mode)) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            path: ["roles"],
-            message: `角色 ${role.displayName} 使用火山引擎模式时需要 model（建议填写 endpoint id），或在服务端配置 VOLCENGINE_MODEL`
-          });
-        }
-      }
 
       if (role.model.mode === "openai") {
         if (!role.model.apiKey && !hasProviderApiKeyFallback(role.model.mode)) {
