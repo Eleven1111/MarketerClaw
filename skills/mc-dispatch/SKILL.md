@@ -20,6 +20,7 @@ description: MarketerClaw 统一调度入口。自动识别营销请求意图、
 | 新品上市 / campaign 策划 / 整体作战计划 / 从头做营销 | mc-campaign | strategy.md + content/* + channel.md + review.md |
 | 市场调研 / 行业分析 / 这个赛道怎么样 / 品类机会 | mc-research | research.md |
 | 帮我出内容 / 小红书文案 / TikTok 脚本 / 内容矩阵 | mc-content | content/{platform}.md |
+| SEO / 搜索引擎优化 / 自然搜索 / 关键词研究 / Google 排名 / 百度排名 / Amazon Listing / 外链 | mc-seo | seo.md |
 | GEO / AI 搜索优化 / Perplexity 看不到 / AI 引用 | mc-geo | geo.md |
 | 营销自动化 / 工作流 / 邮件序列 / Lead Scoring | mc-automation | automation.md |
 | 独立站 / DTC 建站 / Shopify / 转化率优化 | mc-dtc | dtc.md |

@@ -50,6 +50,7 @@ curl -fsSL https://raw.githubusercontent.com/Eleven1111/MarketerClaw/main/instal
 | `mc-dtc` | DTC | 海外独立站全栈蓝图（建站/转化/引流/支付物流/本地化/数据/合规） | ✅ |
 | `mc-analytics` | Analytics | 数据分析与诊断（漏斗诊断/归因/预算优化/A·B测试/异常检测/预测/看板） | ✅ |
 | `mc-review` | Review | 品牌调性 + 多法域合规双审（广告法/FTC/ASA/GDPR/景品表示法） | ✅ |
+| `mc-seo` | SEO | 搜索引擎优化（关键词研究/页面SEO/技术SEO/外链/内容SEO/Amazon/百度/国际化） | ✅ |
 | `mc-compete` | Compete | 竞品情报分析（去重/分类/威胁评估/应对建议） | ✅ |
 | `mc-report` | Report | Campaign 复盘与周报 | ✅ |
 
@@ -186,7 +187,7 @@ Each file is standalone markdown — hand directly to the relevant team member.
 
 ### 国内 / Domestic
 
-小红书 · 抖音 · 微信 · 微博 · B站 · 私域
+小红书 · 抖音 · 微信 · 微博 · B站 · 私域 · 百度 SEO
 
 ### 海外 / Overseas
 
