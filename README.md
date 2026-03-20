@@ -11,28 +11,30 @@
 ## 安装 · Install
 
 ```bash
-git clone https://github.com/Eleven1111/MarketerClaw.git
-cd MarketerClaw
+curl -fsSL https://raw.githubusercontent.com/Eleven1111/MarketerClaw/main/install.sh | bash
+```
 
-# 全局安装 / Global install (~/.openclaw/skills/ + ~/.openclaw/scripts/)
-./install.sh
+安装到指定 workspace / Install to a specific workspace:
 
-# 安装到指定 workspace / Install to a specific workspace
-./install.sh /path/to/your/workspace
+```bash
+curl -fsSL https://raw.githubusercontent.com/Eleven1111/MarketerClaw/main/install.sh | bash -s /path/to/your/workspace
+```
 
-# 安装到当前目录 / Install to current directory
-./install.sh --local
+安装到当前目录 / Install to current directory:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/Eleven1111/MarketerClaw/main/install.sh | bash -s -- --local
 ```
 
 ## 升级 · Upgrade
 
 ```bash
-git pull
-./install.sh          # same flags as your original install
+curl -fsSL https://raw.githubusercontent.com/Eleven1111/MarketerClaw/main/install.sh | bash
 ```
 
 > ⚠️ 升级会覆盖所有 `SKILL.md` 文件。如果你修改过技能内容，请先备份。
 > `campaigns/` 目录（你的产出文件）不会被触碰。
+>
 > Upgrade overwrites all `SKILL.md` files. Back up any local edits first.
 > Your `campaigns/` outputs are never touched.
 
