@@ -42,6 +42,7 @@ curl -fsSL https://raw.githubusercontent.com/Eleven1111/MarketerClaw/main/instal
 
 | 技能 | EN | 用途 | 独立可用 |
 |------|----|------|---------|
+| `mc-selection` | Selection | 选品决策（热度信号/需求验证/竞争饱和度/利润模型/平台适配/供应链/合规/营销可行性） | ✅ |
 | `mc-campaign` | Campaign | 全流程作战编排（brief → 策略 → 内容 → 渠道 → 审核） | ✅ |
 | `mc-research` | Research | 市场调研（行业趋势/品类机会/人群洞察/搜索热度/社媒声量） | ✅ |
 | `mc-content` | Content | 单平台内容生产（国内 6 + 海外 10 个平台） | ✅ |

@@ -17,6 +17,7 @@ description: MarketerClaw 统一调度入口。自动识别营销请求意图、
 
 | 用户说的话（关键词/场景） | 路由到 | 主产出文件 |
 |--------------------------|--------|-----------|
+| 选品 / 选什么产品卖 / 这个产品值不值得做 / 爆款产品 / Amazon选品 / TikTok选品 / 小红书开店卖什么 | mc-selection | selection.md |
 | 新品上市 / campaign 策划 / 整体作战计划 / 从头做营销 | mc-campaign | strategy.md + content/* + channel.md + review.md |
 | 市场调研 / 行业分析 / 这个赛道怎么样 / 品类机会 | mc-research | research.md |
 | 帮我出内容 / 小红书文案 / TikTok 脚本 / 内容矩阵 | mc-content | content/{platform}.md |
