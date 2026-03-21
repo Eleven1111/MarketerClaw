@@ -42,6 +42,9 @@ curl -fsSL https://raw.githubusercontent.com/Eleven1111/MarketerClaw/main/instal
 
 | 技能 | EN | 用途 | 独立可用 |
 |------|----|------|---------|
+| `mc-insight` | Insight | 文化洞察（时代情绪/圈层文化/地域差异/文化时机/表达领土/踩雷预警） | ✅ |
+| `mc-product` | Product | 造品（需求空白/差异化策略/产品定义/体验设计/命名包装/产品线架构） | ✅ |
+| `mc-aigc` | AIGC | AI内容生成（图片/视频Prompt体系/品牌视觉系统/素材矩阵/Midjourney/Kling/Runway） | ✅ |
 | `mc-selection` | Selection | 选品决策（热度信号/需求验证/竞争饱和度/利润模型/平台适配/供应链/合规/营销可行性） | ✅ |
 | `mc-campaign` | Campaign | 全流程作战编排（brief → 策略 → 内容 → 渠道 → 审核） | ✅ |
 | `mc-research` | Research | 市场调研（行业趋势/品类机会/人群洞察/搜索热度/社媒声量） | ✅ |
