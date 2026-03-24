@@ -16,3 +16,6 @@ docs/superpowers/
 generate_copy_images.py
 marketer-copy-*.png
 marketer-copy-philosophy.md
+
+# Anti-piracy watermarking (keep private — source reveals stripping method)
+scripts/fingerprint.mjs
