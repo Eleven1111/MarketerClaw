@@ -51,6 +51,7 @@ curl -fsSL https://raw.githubusercontent.com/Eleven1111/MarketerClaw/main/instal
 | `mc-kol` | KOL | 达人营销（达人分层/筛选标准/平台策略/Brief撰写/合作管理/效果评估） | ✅ |
 | `mc-community` | Community | 私域社群（微信私域/Discord/WhatsApp/会员体系/用户分层/裂变增长） | ✅ |
 | `mc-livestream` | Livestream | 直播运营（人货场/选品排品/脚本话术/执行SOP/数据复盘/切片分发，覆盖抖音/淘宝天猫/小红书/视频号/TikTok/IG/YT） | ✅ |
+| `mc-copy` | Copy | 文案写作（22位大师风格/9种风格原子/Tagline/社交文案/电商文案/广告文案/长文软文/品牌宣言/杀伤力自检） | ✅ |
 | `mc-campaign` | Campaign | 全流程作战编排（brief → 策略 → 内容 → 渠道 → 审核） | ✅ |
 | `mc-research` | Research | 市场调研（行业趋势/品类机会/人群洞察/搜索热度/社媒声量） | ✅ |
 | `mc-content` | Content | 单平台内容生产（国内 6 + 海外 10 个平台） | ✅ |
