@@ -37,6 +37,7 @@ description: MarketerClaw 统一调度入口。自动识别营销请求意图、
 | 合规审查 / 品牌审核 / FTC / 广告法 | mc-review | review.md |
 | 竞品分析 / 对手在干什么 / 竞争情报 | mc-compete | compete.md |
 | 复盘 / 周报 / campaign 效果怎样 | mc-report | report.md |
+| 直播 / 直播间 / 开播 / 直播带货 / 直播脚本 / 选品排品 / GPM / 坑位 / 直播切片 / 淘宝直播 / 天猫直播 | mc-livestream | livestream.md |
 
 **多步骤请求**（如"帮我做一个完整的 campaign"）：依次执行 mc-campaign 的各步骤，每步都走 setup → 执行 → finalize 完整链路。
 
@@ -70,6 +71,8 @@ fi
 3. `brief.md` — Campaign brief
 4. `insight.md` — 文化洞察
 5. `research.md` — 市场调研
+6. `selection.md` — 选品决策
+7. `livestream.md` — 直播运营方案
 
 技能可以选择性使用这些上下文，但 dispatch 负责确保它们在执行前被加载。
 
@@ -160,6 +163,8 @@ mc-content（内容 → content/*.md）→ mc-aigc（视觉素材 → aigc.md）
 mc-seo + mc-geo（搜索优化 → seo.md + geo.md）
   ↓
 mc-kol（达人策略 → kol.md）→ mc-community（私域 → community.md）
+  ↓
+mc-livestream（直播运营 → livestream.md）
   ↓
 mc-automation（自动化 → automation.md）→ mc-dtc（独立站 → dtc.md）
   ↓
