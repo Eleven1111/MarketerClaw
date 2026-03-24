@@ -31,91 +31,8 @@ import {
 } from "fs";
 import { resolve, join, dirname, basename } from "path";
 import { fileURLToPath } from "url";
-import { createHash } from "crypto";
-
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CAMPAIGNS_DIR = resolve(__dirname, "..", "campaigns");
-
-// ── Signature verification ──────────────────────────────────────────────────
-// Checks that the calling skill's SKILL.md has a valid fingerprint and
-// matches the installation manifest. Logs warnings but does NOT block execution.
-
-const ZW_START = "\u200D";
-const ZW_END   = "\uFEFF";
-const ZW_ZERO  = "\u200B";
-const ZW_ONE   = "\u200C";
-
-function extractFingerprint(text) {
-  const startIdx = text.indexOf(ZW_START);
-  if (startIdx < 0) return null;
-  const endIdx = text.indexOf(ZW_END, startIdx + 1);
-  if (endIdx < 0) return null;
-  const zwBlock = text.slice(startIdx + 1, endIdx);
-  let binary = "";
-  for (const ch of zwBlock) {
-    if (ch === ZW_ZERO) binary += "0";
-    else if (ch === ZW_ONE) binary += "1";
-  }
-  if (binary.length === 0) return null;
-  try {
-    return BigInt("0b" + binary).toString(16).padStart(binary.length / 4, "0");
-  } catch { return null; }
-}
-
-function stripFingerprint(text) {
-  return text.replace(new RegExp(`[${ZW_START}][${ZW_ZERO}${ZW_ONE}]*[${ZW_END}]`, "g"), "");
-}
-
-function verifyInstallation(skillName) {
-  // Find the skills directory (sibling of scripts/)
-  const skillsDir = resolve(__dirname, "..", "skills");
-  const manifestPath = join(skillsDir, ".mc-manifest.json");
-
-  if (!existsSync(manifestPath)) {
-    process.stderr.write("[finalize] ⚠ No installation manifest found — unverified copy\n");
-    return { verified: false, reason: "no-manifest" };
-  }
-
-  let manifest;
-  try {
-    manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
-  } catch {
-    process.stderr.write("[finalize] ⚠ Corrupt manifest — unverified copy\n");
-    return { verified: false, reason: "corrupt-manifest" };
-  }
-
-  // Check the specific skill file
-  const target = skillName || "mc-dispatch";
-  const skillMd = join(skillsDir, target, "SKILL.md");
-  if (!existsSync(skillMd)) {
-    return { verified: false, reason: "skill-not-found" };
-  }
-
-  const content = readFileSync(skillMd, "utf-8");
-  const fpId = extractFingerprint(content);
-
-  if (!fpId) {
-    process.stderr.write("[finalize] ⚠ No fingerprint in SKILL.md — possible unauthorized copy\n");
-    return { verified: false, reason: "no-fingerprint" };
-  }
-
-  if (fpId !== manifest.installationId) {
-    process.stderr.write("[finalize] ⚠ Fingerprint mismatch — possible tampered copy\n");
-    return { verified: false, reason: "fingerprint-mismatch" };
-  }
-
-  // Verify content hash
-  const meta = manifest.files?.[target];
-  if (meta) {
-    const hash = createHash("sha256").update(stripFingerprint(content)).digest("hex").slice(0, 16);
-    if (hash !== meta.hash) {
-      process.stderr.write("[finalize] ⚠ Content hash mismatch — skill file modified\n");
-      return { verified: false, reason: "hash-mismatch" };
-    }
-  }
-
-  return { verified: true, installationId: fpId };
-}
 
 // ── Arg parsing ──────────────────────────────────────────────────────────────
 
@@ -138,16 +55,6 @@ if (!slug || !step || !file) {
     "Usage: finalize.mjs --slug <slug> --step <step> --file <filename> [--input <file>]\n"
   );
   process.exit(1);
-}
-
-// ── Verify installation signature ─────────────────────────────────────────────
-
-const verification = verifyInstallation(skill);
-if (!verification.verified) {
-  // Log warning but continue — soft enforcement
-  process.stderr.write(
-    `[finalize] Installation verification: ${verification.reason}\n`
-  );
 }
 
 // ── Read content ──────────────────────────────────────────────────────────────
