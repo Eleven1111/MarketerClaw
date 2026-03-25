@@ -39,6 +39,7 @@ description: MarketerClaw 统一调度入口。自动识别营销请求意图、
 | 复盘 / 周报 / campaign 效果怎样 | mc-report | report.md |
 | 直播 / 直播间 / 开播 / 直播带货 / 直播脚本 / 选品排品 / GPM / 坑位 / 直播切片 / 淘宝直播 / 天猫直播 | mc-livestream | livestream.md |
 | 写文案 / 文案 / copy / 文案风格 / 标题 / slogan / tagline / 详情页文案 / 软文 / 品牌宣言 / manifesto / 电商文案 / 种草文 | mc-copy | copy.md |
+| 从头做品牌 / 全链路 / 完整 campaign / 一条龙 / 全部帮我做 / full pipeline / end to end / run all / 全流程 | mc-orchestrate | — |
 
 **多步骤请求**（如"帮我做一个完整的 campaign"）：依次执行 mc-campaign 的各步骤，每步都走 setup → 执行 → finalize 完整链路。
 
@@ -145,7 +146,7 @@ node {SKILL_DIR}/../scripts/finalize.mjs \
 
 ## 推荐执行顺序
 
-当用户说"从头开始做一个品牌"时，推荐的全链路顺序：
+多步全链路请求推荐使用 mc-orchestrate 自动执行。以下是手动逐步调用时的推荐顺序：
 
 ```
 mc-brand（品牌策略 → brand.md）

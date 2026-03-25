@@ -63,10 +63,11 @@ curl -fsSL https://raw.githubusercontent.com/Eleven1111/MarketerClaw/main/instal
 | `mc-seo` | SEO | 搜索引擎优化（关键词研究/页面SEO/技术SEO/外链/内容SEO/Amazon/百度/国际化） | ✅ |
 | `mc-compete` | Compete | 竞品情报分析（去重/分类/威胁评估/应对建议） | ✅ |
 | `mc-report` | Report | Campaign 复盘与周报 | ✅ |
+| `mc-orchestrate` | Orchestrate | 全链路自主执行（A/B/C 三档深度，智能暂停决策点，自动串联最多 22 个技能） | ✅ |
 
-每个技能都可以独立使用，也可以通过 `mc-campaign` 串联执行。
+每个技能都可以独立使用，也可以通过 `mc-orchestrate` 全链路自动执行，或通过 `mc-campaign` 手动串联。
 
-Each skill works standalone or can be orchestrated end-to-end via `mc-campaign`.
+Each skill works standalone or can be orchestrated end-to-end via `mc-orchestrate` (auto) or `mc-campaign` (manual).
 
 ---
 
