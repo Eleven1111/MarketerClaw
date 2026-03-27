@@ -64,6 +64,7 @@ curl -fsSL https://raw.githubusercontent.com/Eleven1111/MarketerClaw/main/instal
 | `mc-compete` | Compete | 竞品情报分析（去重/分类/威胁评估/应对建议） | ✅ |
 | `mc-report` | Report | Campaign 复盘与周报 | ✅ |
 | `mc-orchestrate` | Orchestrate | 全链路自主执行（A/B/C 三档深度，智能暂停决策点，自动串联最多 22 个技能） | ✅ |
+| `mc-memory` | Memory | 品牌记忆管理（跨 campaign 智慧积累、查看 / 更新 / 初始化 brand-memory.md，支持多品牌） | ✅ |
 
 每个技能都可以独立使用，也可以通过 `mc-orchestrate` 全链路自动执行，或通过 `mc-campaign` 手动串联。
 

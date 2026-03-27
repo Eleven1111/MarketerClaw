@@ -40,6 +40,7 @@ description: MarketerClaw 统一调度入口。自动识别营销请求意图、
 | 直播 / 直播间 / 开播 / 直播带货 / 直播脚本 / 选品排品 / GPM / 坑位 / 直播切片 / 淘宝直播 / 天猫直播 | mc-livestream | livestream.md |
 | 写文案 / 文案 / copy / 文案风格 / 标题 / slogan / tagline / 详情页文案 / 软文 / 品牌宣言 / manifesto / 电商文案 / 种草文 | mc-copy | copy.md |
 | 从头做品牌 / 全链路 / 完整 campaign / 一条龙 / 全部帮我做 / full pipeline / end to end / run all / 全流程 | mc-orchestrate | — |
+| 查看品牌记忆 / 品牌积累 / 记住这个洞察 / 更新品牌记忆 / brand memory | mc-memory | brand-memory.md |
 
 **多步骤请求**（如"帮我做一个完整的 campaign"）：依次执行 mc-campaign 的各步骤，每步都走 setup → 执行 → finalize 完整链路。
 
@@ -65,9 +66,14 @@ fi
 | `brand.md` 不存在，且调用的是 mc-brand | 正常执行，这是创建 brand.md 的步骤 |
 | `brand.md` 不存在，且调用的是其他技能 | 提示用户"建议先运行 mc-brand 建立品牌上下文，可以提升所有后续产出的品牌一致性。是否先做？" |
 | `storyteller.md` 存在 | 同时加载叙事体系（核心冲突、角色、母题），供 mc-content / mc-aigc / mc-kol 使用 |
+| `memory/brand-memory.md` 存在 | 读取所有章节，作为"品牌长期记忆"注入，优先于当次 campaign 的 brand.md |
+| `brief.md` 含 `brand: {slug}` 字段 | 从 `memory/{slug}/brand-memory.md` 读取替代默认路径 |
+
+**v1 冲突处理**：brand-memory.md 与当次 brand.md 内容冲突时，两者共同提供上下文，由执行技能自行综合，不强制去重。
 
 **自动加载的上下文文件（按优先级）：**
 
+0. `brand-memory.md` — 跨 campaign 持久品牌智慧（从 `memory/` 目录加载，见下方规则）
 1. `brand.md` — 品牌策略（全局）
 2. `storyteller.md` — 叙事体系
 3. `brief.md` — Campaign brief
