@@ -36,6 +36,7 @@ description: MarketerClaw 统一调度入口。自动识别营销请求意图、
 | 数据分析 / 转化率下降 / A/B 测试 / 指标体系 | mc-analytics | analytics.md |
 | 合规审查 / 品牌审核 / FTC / 广告法 | mc-review | review.md |
 | 竞品分析 / 对手在干什么 / 竞争情报 | mc-compete | compete.md |
+| 竞品卖得怎么样 / 品类爆款 / 热销排行 / 销量监控 / 新品趋势 / 什么卖得好 | mc-monitor | monitor.md |
 | 复盘 / 周报 / campaign 效果怎样 | mc-report | report.md |
 | 直播 / 直播间 / 开播 / 直播带货 / 直播脚本 / 选品排品 / GPM / 坑位 / 直播切片 / 淘宝直播 / 天猫直播 | mc-livestream | livestream.md |
 | 写文案 / 文案 / copy / 文案风格 / 标题 / slogan / tagline / 详情页文案 / 软文 / 品牌宣言 / manifesto / 电商文案 / 种草文 | mc-copy | copy.md |
