@@ -47,6 +47,7 @@ description: MarketerClaw 统一调度入口。自动识别营销请求意图、
 | 写文案 / 文案 / copy / 文案风格 / 标题 / slogan / tagline / 详情页文案 / 软文 / 品牌宣言 / manifesto / 电商文案 / 种草文 | mc-copy | copy.md |
 | 从头做品牌 / 全链路 / 完整 campaign / 一条龙 / 全部帮我做 / full pipeline / end to end / run all / 全流程 | mc-orchestrate | — |
 | 查看品牌记忆 / 品牌积累 / 记住这个洞察 / 更新品牌记忆 / brand memory | mc-memory | brand-memory.md |
+| 海报 / 促销海报 / 裂变海报 / 课程海报 / 活动海报 / 大促海报 / 设计海报 / poster / 视觉设计 | mc-poster | poster.md |
 
 **多步骤请求**（如"帮我做一个完整的 campaign"）：依次执行 mc-campaign 的各步骤，每步都走 setup → 执行 → finalize 完整链路。
 
