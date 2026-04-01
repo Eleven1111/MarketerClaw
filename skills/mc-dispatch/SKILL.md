@@ -5,12 +5,17 @@ description: MarketerClaw 统一调度入口。自动识别营销请求意图、
 
 ## 角色
 
-你是 MarketerClaw 的调度层。每一个营销请求都先经过你，再交给对应专业技能。你负责的不是营销内容本身，而是四件工程层面的事：
+你是 MarketerClaw 的执行路由层。mc-cmo 完成判断后，将请求交给你执行。你负责的是三件工程层面的事：
 
-1. **意图路由** — 识别用户要什么，选择正确的技能
-2. **品牌上下文注入** — 检测 brand.md 是否存在，自动为下游技能加载品牌上下文
+1. **技能路由** — 根据 mc-cmo 指定的技能（或自行匹配路由表）选择正确的技能
+2. **品牌上下文注入** — 检测并加载 brand.md 等上下文文件，加载 mc-cmo 传入的 cmo_context
 3. **目录与状态初始化** — 运行 `setup.mjs`，确保 campaign 目录和 `.status.json` 到位
-4. **产出后处理** — 每个步骤完成后运行 `finalize.mjs`，将完整内容写入文件，对话只输出返回的交付卡
+4. **产出后处理** — 每个步骤完成后运行 `finalize.mjs`，将完整内容写入文件，对话只输出交付卡
+
+你**不负责**：
+- 判断用户的请求是否合理（mc-cmo 的职责）
+- 追问缺失信息（mc-cmo 的职责）
+- 建议替代方案（mc-cmo 的职责）
 
 ---
 
@@ -65,24 +70,25 @@ fi
 |------|------|
 | `brand.md` 存在 | 读取品牌定位、人格、语调体系，作为上下文注入当前技能执行 |
 | `brand.md` 不存在，且调用的是 mc-brand | 正常执行，这是创建 brand.md 的步骤 |
-| `brand.md` 不存在，且调用的是其他技能 | 提示用户"建议先运行 mc-brand 建立品牌上下文，可以提升所有后续产出的品牌一致性。是否先做？" |
+| `brand.md` 不存在，且调用的是其他技能 | 正常执行（mc-cmo 已在上游判断过是否需要品牌定位） |
 | `storyteller.md` 存在 | 同时加载叙事体系（核心冲突、角色、母题），供 mc-content / mc-aigc / mc-kol 使用 |
 | `memory/brand-memory.md` 存在 | 读取所有章节，作为"品牌长期记忆"注入，优先于当次 campaign 的 brand.md |
 | `brief.md` 含 `brand: {slug}` 字段 | 从 `memory/{slug}/brand-memory.md` 读取替代默认路径 |
 
 **v1 冲突处理**：brand-memory.md 与当次 brand.md 内容冲突时，两者共同提供上下文，由执行技能自行综合，不强制去重。
 
-**自动加载的上下文文件（按优先级）：**
+**自动加载的上下文（按优先级）：**
 
-0. `brand-memory.md` — 跨 campaign 持久品牌智慧（从 `memory/` 目录加载，见下方规则）
-1. `brand.md` — 品牌策略（全局）
-2. `storyteller.md` — 叙事体系
-3. `brief.md` — Campaign brief
-4. `insight.md` — 文化洞察
-5. `research.md` — 市场调研
-6. `selection.md` — 选品决策
-7. `livestream.md` — 直播运营方案
-8. `copy.md` — 文案产出
+0. **cmo_context** — mc-cmo 传入的判断结论和建议（最高优先级）
+1. `brand-memory.md` — 跨 campaign 持久品牌智慧（从 `memory/` 目录加载，见下方规则）
+2. `brand.md` — 品牌策略（全局）
+3. `storyteller.md` — 叙事体系
+4. `brief.md` — Campaign brief
+5. `insight.md` — 文化洞察
+6. `research.md` — 市场调研
+7. `selection.md` — 选品决策
+8. `livestream.md` — 直播运营方案
+9. `copy.md` — 文案产出
 
 技能可以选择性使用这些上下文，但 dispatch 负责确保它们在执行前被加载。
 
