@@ -388,11 +388,8 @@ ls "$SCRIPTS_DIR/setup.mjs" && echo "scripts found at $SCRIPTS_DIR" || echo "scr
 
 ## 判断 → 路由 → 执行（单层内部流转）
 
-判断阶段完成后，结论以**内部 cmo_context 笔记**（格式见 frameworks/judgment.md）
-直接驱动上方「路由与执行」段：按意图路由表选定技能 → 注入 brand 上下文 + cmo_context
-→ setup.mjs → 执行技能 → finalize.mjs。不再有跨技能序列化传递。
-
-全链路触发词仍交给 mc-orchestrate（见其 SKILL.md），mc-cmo 只做前置信息收集后移交。
+判断阶段的结论以**内部 cmo_context 笔记**（格式见 frameworks/judgment.md）直接驱动上方
+「路由与执行」段——判断、路由、执行在同一技能内连续完成，不再有跨技能序列化传递。
 
 ---
 
