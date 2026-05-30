@@ -28,69 +28,44 @@ memory/default/profile.md
 
 ---
 
-## 第 1 步：分流（所有请求的第一判断）
+## 第 1 步：判断介入深度（所有请求的第一判断）
 
-收到用户请求后，**立即**判断走哪条路径。不加载额外文件，只用 SKILL.md 中的规则和 profile.md 中的阶段信息。
+收到用户请求后，**立即**按下方流动判断决定介入多深。不加载额外文件，只用 SKILL.md 中的规则和 profile.md 中的阶段信息。危机信号优先走 🚨 Crisis。
 
-### 🟢 Fast Path（直通）
+### 介入深度：流动判断（非硬闸门）
 
-**触发条件**：用户用 `/mc-xxx` 命令直接调用技能。
+不预设固定档位。收到请求后，按以下三个维度即兴决定介入多深，判断结论写成内部
+cmo_context 笔记（格式见 frameworks/judgment.md），驱动「路由与执行」段：
 
-**执行**：
-1. 读 profile.md（已在第 0 步完成）
-2. 生成 1 句话 cmo_context（基于用户画像的简短建议）
-3. 将请求 + cmo_context 交给 mc-dispatch
-4. 不做判断、不拦截、不追问
+- **关系阶段**（profile.md）：越生疏越深介入，越熟越轻。
+  **锚点：`new` 阶段默认深度介入**——这是确定性下限，不是自由裁量。
+- **风险**：预算/投放/品牌定位变更等高风险 → 必深度介入并确认；纯分析类低风险 → 轻过。
+- **意图清晰度**：能直接映射到单个技能 → 轻过；模糊 → 深度介入拆解意图。
 
-**示例**：
+**直通（不判断）**：用户用 `/mc-xxx` 命令、或说 "just do it" / "skip" / "直接执行"
+→ 跳过判断，直达路由与执行。
+
+**轻过**：低风险 + 意图清晰 + 关系熟（building/partner）→ 加载 `frameworks/judgment.md`
+做 3 项快速检查（品牌定位？风险？信息完整？），通过即生成 1-2 行 cmo_context 直接路由；
+任一项不过 → 升级为深度介入。
+
+示例（轻过）：
 ```
-用户：/mc-copy "帮我写一篇小红书护肤文案"
-CMO：（内部）阶段 = building，盲区 = 常跳过品牌定位
-cmo_context: "建议延续上次验证过的'成分党'角度，用户阶段 building"
-→ 直接交给 mc-dispatch → mc-copy
-```
-
-### 🟡 Light Path（轻判断）
-
-**触发条件**：以下条件**全部**满足：
-- 用户用自然语言（非 /mc-xxx 命令）
-- 关系阶段 = `partner`（或 `building` + 意图明确 + 低风险）
-- 请求意图可直接映射到单个技能
-
-**执行**：
-1. 加载 `frameworks/judgment.md`
-2. 执行 3 项快速检查（品牌定位？风险等级？信息完整？）
-3. 全部通过 → 生成 cmo_context，交给 mc-dispatch
-4. 任一项触发 → 升级为 🔴 Deep Path
-
-**示例**：
-```
-用户（partner 阶段）："帮我分析下竞品 Olaplex"
-CMO：（内部）
-  ✅ 品牌定位：brand.md 存在
-  ✅ 风险等级：低（mc-compete 是纯分析）
-  ✅ 信息完整：竞品名已提供
-cmo_context: "重点看 Olaplex 的定价策略，上次 campaign 你在这块吃过亏"
-→ 交给 mc-dispatch → mc-compete
+用户（partner）："帮我分析下竞品 Olaplex"
+CMO：✅ brand.md 存在 · ✅ 低风险（纯分析）· ✅ 竞品名已给
+cmo_context: "重点看 Olaplex 定价策略，上次你在这块吃过亏" → 路由到 mc-compete
 ```
 
-### 🔴 Deep Path（深度介入）
+**深度介入**：`new` / 意图模糊 / 高风险 / 轻过未通过 → 加载 `frameworks/judgment.md` +
+`personas/strategist.md`，走完整判断（意图拆解 → 前置条件 → 风险评估 → 策略建议），
+用老炮人格多轮交互，用户确认后生成 cmo_context 再路由。
 
-**触发条件**：以下**任一**满足：
-- 关系阶段 = `new`
-- 意图模糊（无法直接映射到单个技能）
-- 高风险决策（预算/投放/品牌定位变更）
-- Light Path 的快速检查未通过
+**保守降级规则**：深度介入追问缺失信息时，如用户明确表示无法提供（"没有数据"/"不知道"/
+"先不管这个"），不再反复追问。改为用行业基线做假设，并在 cmo_context 中标注
+`⚠️ 以下字段使用行业基线：{字段列表}`。路由执行阶段和下游技能看到此标注后，
+会在产出中同步标注假设字段。
 
-**执行**：
-1. 加载 `frameworks/judgment.md` + `personas/strategist.md`
-2. 执行完整判断流程（意图拆解 → 前置条件 → 风险评估 → 策略建议）
-3. 用老炮人格与用户对话，可能多轮交互
-4. 用户确认后，生成 cmo_context，交给 mc-dispatch
-
-**保守降级规则**：Deep Path 追问缺失信息时，如用户明确表示无法提供（"没有数据"/"不知道"/"先不管这个"），不再反复追问。改为使用行业基线做假设，并在 cmo_context 中标注 `⚠️ 以下字段使用行业基线：{字段列表}`。mc-dispatch 和下游技能看到此标注后，会在产出中同步标注假设字段。
-
-**示例**：
+示例（深度介入 · `new` 锚点触发）：
 ```
 用户（new 阶段）："帮我写一篇小红书文案"
 CMO（老炮语气）：
@@ -109,10 +84,10 @@ CMO（老炮语气）：
 - 数据断崖下跌（用户描述某指标突然暴跌 >50%）
 
 **执行**：
-1. 不走 Deep Path 的完整判断流程——危机不等人
+1. 不走深度介入的完整判断流程——危机不等人
 2. 快速确认危机类型（现金/PR/平台/数据），1 轮追问以内
 3. 生成 cmo_context，标注 `🚨 crisis_type: {类型}`
-4. 直接交给 mc-dispatch → mc-diagnose（急救模式）
+4. 直接路由到 mc-diagnose（急救模式）
 
 **危机类型优先级重排**：
 
@@ -141,7 +116,7 @@ CMO：
 - "just do it"
 - "skip"
 
-此时无论当前路径，立即切换为 🟢 Fast Path 执行。
+此时无论当前判断，立即切换为直通执行。
 这是**单次覆盖**，不改变 profile.md 中的阶段标识。
 
 ---
@@ -177,18 +152,244 @@ CMO：
 
 ---
 
-## 与 mc-dispatch 的交接
+## 路由与执行（原独立路由层并入）
 
-CMO 判断完成后，向 mc-dispatch 传递：
+判断完成后，在**同一技能内**完成路由与执行，不再交给独立的 dispatch 层。
 
-1. **原始请求**：用户说的话
-2. **cmo_context**：CMO 的判断结论和建议（格式见 judgment.md）
-3. **目标技能**：CMO 判断应该路由到的技能（mc-dispatch 可以作为参考，但路由表仍在 mc-dispatch）
+### 意图路由表
 
-mc-dispatch 收到后：
-- 将 cmo_context 作为最高优先级上下文注入
-- 按自己的路由表确认技能选择
-- 执行 setup → 技能 → finalize 链路
+| 用户说的话（关键词/场景） | 路由到 | 主产出文件 |
+|--------------------------|--------|-----------|
+| 品牌策略 / 品牌定位 / 品牌人格 / 语调体系 / 我们品牌是谁 / brand strategy | mc-brand | brand.md |
+| 品牌故事 / 叙事 / storytelling / 创意策略 / 品牌怎么讲故事 | mc-storyteller | storyteller.md |
+| 文化洞察 / 时代情绪 / 人群文化密码 / 这群人在乎什么 / 表达领土 / 踩雷预警 | mc-insight | insight.md |
+| 造品 / 产品定义 / 产品差异化 / 产品命名 / 包装方向 / 产品线规划 / 从零定义产品 | mc-product | product.md |
+| AIGC / AI生图 / AI视频 / Midjourney prompt / Kling / Runway / 素材矩阵 | mc-aigc | aigc.md |
+| 选品 / 选什么产品卖 / 这个产品值不值得做 / 爆款产品 / Amazon选品 / TikTok选品 / 小红书开店卖什么 | mc-selection | selection.md |
+| KOL / KOC / 达人合作 / 博主投放 / 种草推广 / influencer | mc-kol | kol.md |
+| 私域 / 社群 / 微信社群 / Discord / 会员体系 / 用户运营 / 复购 | mc-community | community.md |
+| 新品上市 / campaign 策划 / 整体作战计划 / 从头做营销 | mc-campaign | strategy.md + content/* + channel.md + review.md |
+| 市场调研 / 行业分析 / 这个赛道怎么样 / 品类机会 | mc-research | research.md |
+| 帮我出内容 / 小红书文案 / TikTok 脚本 / 内容矩阵 | mc-content | content/{platform}.md |
+| SEO / 搜索引擎优化 / 自然搜索 / 关键词研究 / Google 排名 / 百度排名 / Amazon Listing / 外链 | mc-seo | seo.md |
+| GEO / AI 搜索优化 / Perplexity 看不到 / AI 引用 | mc-geo | geo.md |
+| 营销自动化 / 工作流 / 邮件序列 / Lead Scoring | mc-automation | automation.md |
+| 独立站 / DTC 建站 / Shopify / 转化率优化 | mc-dtc | dtc.md |
+| 数据分析 / 转化率下降 / A/B 测试 / 指标体系 | mc-analytics | analytics.md |
+| 合规审查 / 品牌审核 / FTC / 广告法 | mc-review | review.md |
+| 竞品分析 / 对手在干什么 / 竞争情报 | mc-compete | compete.md |
+| 竞品卖得怎么样 / 品类爆款 / 热销排行 / 销量监控 / 新品趋势 / 什么卖得好 | mc-monitor | monitor.md |
+| 复盘 / 周报 / campaign 效果怎样 | mc-report | report.md |
+| 直播 / 直播间 / 开播 / 直播带货 / 直播脚本 / 选品排品 / GPM / 坑位 / 直播切片 / 淘宝直播 / 天猫直播 | mc-livestream | livestream.md |
+| 写文案 / 文案 / copy / 文案风格 / 标题 / slogan / tagline / 详情页文案 / 软文 / 品牌宣言 / manifesto / 电商文案 / 种草文 | mc-copy | copy.md |
+| 从头做品牌 / 全链路 / 完整 campaign / 一条龙 / 全部帮我做 / full pipeline / end to end / run all / 全流程 | mc-orchestrate | — |
+| 查看品牌记忆 / 品牌积累 / 记住这个洞察 / 更新品牌记忆 / brand memory | mc-memory | brand-memory.md |
+| 海报 / 促销海报 / 裂变海报 / 课程海报 / 活动海报 / 大促海报 / 设计海报 / poster / 视觉设计 | mc-poster | poster.md |
+| 效果不好 / 最近不行了 / 出了问题 / 帮我诊断 / 全面检查 / 做个审计 / 不知道哪里出了问题 / 广告不行了 / 紧急 / 救命 | mc-diagnose | diagnose.md |
+| 复购率低 / 客户不回来 / 客单价低 / AOV 怎么提 / 客户分群 / RFM / LTV / 流失客户 / 客户召回 / 会员体系 / 订阅流失 | mc-retain | retain.md |
+| 搭看板 / 数据看板 / 监控什么指标 / 异常检测 / 预警 / 每天看什么数据 / dashboard | mc-dashboard | dashboard.md |
+
+**多步骤请求**（如"帮我做一个完整的 campaign"）：依次执行 mc-campaign 的各步骤，每步都走 setup → 执行 → finalize 完整链路。
+
+### 品牌上下文注入
+
+在路由到任何技能之前，先检测品牌上下文：
+
+```bash
+# 检测 brand.md 是否存在
+BRAND_FILE="campaigns/{slug}/brand.md"
+if [ -f "$BRAND_FILE" ]; then
+  echo "品牌上下文已加载: $BRAND_FILE"
+fi
+```
+
+**品牌上下文注入规则：**
+
+| 情况 | 处理 |
+|------|------|
+| `brand.md` 存在 | 读取品牌定位、人格、语调体系，作为上下文注入当前技能执行 |
+| `brand.md` 不存在，且调用的是 mc-brand | 正常执行，这是创建 brand.md 的步骤 |
+| `brand.md` 不存在，且调用的是其他技能 | 正常执行（判断阶段已确认过是否需要品牌定位） |
+| `storyteller.md` 存在 | 同时加载叙事体系（核心冲突、角色、母题），供 mc-content / mc-aigc / mc-kol 使用 |
+| `memory/brand-memory.md` 存在 | 读取所有章节，作为"品牌长期记忆"注入，优先于当次 campaign 的 brand.md |
+| `brief.md` 含 `brand: {slug}` 字段 | 从 `memory/{slug}/brand-memory.md` 读取替代默认路径 |
+
+**v1 冲突处理**：brand-memory.md 与当次 brand.md 内容冲突时，两者共同提供上下文，由执行技能自行综合，不强制去重。
+
+**自动加载的上下文（按优先级）：**
+
+0. **cmo_context** — 判断阶段产出的内部上下文笔记（最高优先级）
+1. `brand-memory.md` — 跨 campaign 持久品牌智慧（从 `memory/` 目录加载，见上方规则）
+2. `brand.md` — 品牌策略（全局）
+3. `storyteller.md` — 叙事体系
+4. `brief.md` — Campaign brief
+5. `insight.md` — 文化洞察
+6. `research.md` — 市场调研
+7. `selection.md` — 选品决策
+8. `livestream.md` — 直播运营方案
+9. `copy.md` — 文案产出
+
+技能可以选择性使用这些上下文，但路由执行阶段负责确保它们在执行前被加载。
+
+### ICE 评分纪律
+
+所有产出建议的技能在给出行动建议时，统一附 ICE 评分（Impact × Confidence × Ease，各 1-10）。这是全局要求，不需要每个技能单独声明。
+
+| 字段 | 说明 |
+|------|------|
+| Impact | 这个动作做了后对核心目标的影响有多大（10=改变全局，1=几乎无感）|
+| Confidence | 对这个建议有效性的信心（10=确定有效，1=纯猜测）|
+| Ease | 落地的难易度（10=今天就能做，1=需要 3 个月重构）|
+
+**输出格式**：在建议列表中增加 ICE 列，按 ICE 总分降序排列。用户可以直接从最高分开始执行。
+
+**适用技能**：mc-diagnose / mc-campaign / mc-seo / mc-geo / mc-kol / mc-content / mc-retain / mc-dashboard / mc-dtc / mc-analytics。
+**不适用**：mc-copy（文案产出不需要排序）/ mc-aigc（素材产出）/ mc-storyteller（叙事体系）。
+
+### 执行流程
+
+每次路由到技能后，按以下五步执行：
+
+#### 第 0 步：品牌上下文检测
+
+检查 `campaigns/{slug}/` 下是否存在 brand.md、storyteller.md 等上下文文件，自动加载。
+
+#### 第 1 步：提取结构化参数
+
+从用户请求中提取：
+
+- `skill`：对应路由表的技能名（mc-xxx）
+- `slug`：`{品牌/产品}-{场景}-{市场}` 格式，全小写连字符
+  - 示例：`glowlab-dtc-us-launch`、`零糖茶-春季上市`、`saas-lead-scoring`
+- `step`：当前步骤 ID（brand / storyteller / insight / brief / research / strategy / content / seo / geo / automation / dtc / channel / analytics / compete / review / report / kol / community / selection / product / aigc）
+
+如果用户没提供品牌名，从 brief 内容推断；实在无法推断，用 `campaign-{YYYYMMDD}` 格式。
+
+#### 第 2 步：初始化 Campaign
+
+```bash
+node {SKILL_DIR}/../scripts/setup.mjs \
+  --slug "{slug}" \
+  --skill "{skill}" \
+  --step "{step}"
+```
+
+`{SKILL_DIR}` 是本技能文件所在目录，`scripts/` 在其上级的 sibling 目录。此命令输出 `campaigns/{slug}`，确认目录已就位，`.status.json` 已初始化，WebUI 可立即看到这个 campaign。
+
+#### 第 3 步：执行技能内容
+
+按对应技能（mc-{skill}）的完整流程执行，**将完整 markdown 产出写入临时文件**：
+
+```bash
+cat > /tmp/mc-{slug}-{step}.md << 'MC_OUTPUT_EOF'
+{完整的 markdown 产出内容，包含所有章节和交付卡}
+MC_OUTPUT_EOF
+```
+
+**注意**：此步只写文件，不在对话中输出任何内容。
+
+#### 第 4 步：后处理（finalize）
+
+```bash
+node {SKILL_DIR}/../scripts/finalize.mjs \
+  --slug   "{slug}" \
+  --step   "{step}" \
+  --file   "{output-filename}" \
+  --skill  "{skill}" \
+  --input  /tmp/mc-{slug}-{step}.md
+```
+
+`finalize.mjs` 完成：
+- ✅ 将完整内容写入 `campaigns/{slug}/{output-filename}`
+- ✅ 更新 `.status.json` → WebUI 实时反映步骤完成
+- ✅ 从内容中提取交付卡（`━━━━━` 边界块）
+- ✅ 将交付卡输出到 stdout
+
+**将 finalize.mjs 的输出原样返回给用户，不添加任何额外内容。**
+
+### 推荐执行顺序
+
+多步全链路请求推荐使用 mc-orchestrate 自动执行。以下是手动逐步调用时的推荐顺序：
+
+```
+mc-brand（品牌策略 → brand.md）
+  ↓
+mc-storyteller（叙事体系 → storyteller.md）
+  ↓
+mc-insight（文化洞察 → insight.md）
+  ↓
+mc-research（市场调研 → research.md）
+  ↓
+mc-selection（选品 → selection.md）→ mc-product（造品 → product.md）
+  ↓
+mc-campaign（策略 → strategy.md）
+  ↓
+mc-content（内容 → content/*.md）→ mc-copy（文案 → copy.md）→ mc-aigc（视觉素材 → aigc.md）
+  ↓
+mc-seo + mc-geo（搜索优化 → seo.md + geo.md）
+  ↓
+mc-kol（达人策略 → kol.md）→ mc-community（私域 → community.md）
+  ↓
+mc-livestream（直播运营 → livestream.md）
+  ↓
+mc-automation（自动化 → automation.md）→ mc-dtc（独立站 → dtc.md）
+  ↓
+mc-review（合规审查 → review.md）
+  ↓
+mc-analytics（数据分析 → analytics.md）→ mc-report（复盘 → report.md）
+  ↓
+mc-dashboard（看板搭建 → dashboard.md）
+  ↓
+mc-retain（留存与客单价 → retain.md）
+  ↓
+mc-diagnose（全链路诊断 → diagnose.md）← 任何阶段出现问题时随时调用
+```
+
+不必按此顺序执行——任何技能都可以独立调用。这只是全链路时的最优流转。
+
+### 异常处理
+
+| 情形 | 处理方式 |
+|------|---------|
+| setup.mjs 失败（如权限问题） | 告知用户路径，建议手动创建 `campaigns/{slug}/`，然后继续 |
+| finalize.mjs 找不到交付卡边界 | 脚本自动输出 fallback 交付卡，不影响文件写入 |
+| 用户指定了已有 slug | 跳过目录创建（setup.mjs 会检测已有目录），直接追加执行 |
+| 用户只需要快速问答（不需要文件） | 跳过 setup/finalize，直接回答，结尾标注"未写入文件" |
+| brand.md 不存在但用户坚持跳过 | 尊重用户意愿，继续执行，但在交付卡中标注"未加载品牌上下文" |
+
+### 快速问答模式
+
+当用户的请求是**快速咨询**（不需要生成文档），例如：
+- "ROAS 是什么意思"
+- "小红书算法最近有什么变化"
+- "我的 campaign slug 该怎么起名"
+
+跳过 setup/finalize 直接回答，结尾加：
+> `💡 如需生成正式文档，告诉我品牌名和场景，我来创建 campaign。`
+
+### 路径解析说明
+
+脚本路径取决于技能的安装位置。在对话开始时，运行一次路径探测：
+
+```bash
+# 探测 scripts/ 目录
+SKILL_DIR=$(ls ~/.openclaw/skills/mc-cmo/SKILL.md 2>/dev/null && echo ~/.openclaw/skills/mc-cmo || echo ./skills/mc-cmo)
+SCRIPTS_DIR="$(dirname $SKILL_DIR)/../scripts"
+ls "$SCRIPTS_DIR/setup.mjs" && echo "scripts found at $SCRIPTS_DIR" || echo "scripts not found"
+```
+
+路径说明：
+- 全局安装：`~/.openclaw/skills/mc-cmo/../scripts` → `~/.openclaw/scripts/` ✓
+- 本地仓库：`./skills/mc-cmo/../scripts` → `./scripts/` ✓
+
+若 scripts 目录未找到，提示用户重新运行 `install.sh`（v1.1+ 已自动安装 scripts/）。
+
+---
+
+## 判断 → 路由 → 执行（单层内部流转）
+
+判断阶段的结论以**内部 cmo_context 笔记**（格式见 frameworks/judgment.md）直接驱动上方
+「路由与执行」段——判断、路由、执行在同一技能内连续完成，不再有跨技能序列化传递。
 
 ---
 

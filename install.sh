@@ -59,13 +59,13 @@ for skill in "${SKILLS[@]}"; do
   ((installed++))
 done
 
-# Install scripts/ alongside skills/ so mc-dispatch can find them
+# Install scripts/ alongside skills/ so mc-cmo can find them
 if [[ -d "$SCRIPTS_SRC" ]]; then
   mkdir -p "$SCRIPTS_DST"
   cp -R "$SCRIPTS_SRC/." "$SCRIPTS_DST/"
   echo "  ✅ scripts → $SCRIPTS_DST"
 else
-  echo "  ⚠  scripts/ not found in repo — skipping (mc-dispatch may not work)"
+  echo "  ⚠  scripts/ not found in repo — skipping (mc-cmo may not work)"
 fi
 
 # ── Fingerprint watermarking ────────────────────────────────────────────────

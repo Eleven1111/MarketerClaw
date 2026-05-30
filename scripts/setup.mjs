@@ -69,6 +69,7 @@ status = {
   updatedAt: now,
   steps: status.steps ?? {},
   log: status.log ?? [],
+  review_loop: status.review_loop ?? { iteration: 0, max: 3, last_verdict: null, blocked_files: [] },
 };
 
 if (step && !status.steps[step]) {

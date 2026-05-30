@@ -14,26 +14,26 @@ description: 全链路自主执行技能。用户说"从头做品牌"或"完整 
 - "全部帮我做" / "从零开始" / "完整执行" / "全套方案"
 - "run all" / "full pipeline" / "end to end" / "全流程"
 
-**不触发（单步请求走 mc-dispatch）：**
+**不触发（单步请求走 mc-cmo 路由）：**
 - "帮我写文案" → mc-copy
 - "做一个品牌策略" → mc-brand
 - "分析竞品" → mc-compete
 
 ---
 
-## 与 mc-dispatch 的关系
+## 与 mc-cmo 路由的关系
 
 ```
 用户请求
     │
-    ├─ 单步请求 ──────────────────→ mc-dispatch → 对应技能
+    ├─ 单步请求 ──────────────────→ mc-cmo（判断+路由）→ 对应技能
     │
     └─ 多步请求（全链路触发词）──→ mc-orchestrate
                                         │
                                         └─ 按依赖顺序调用各技能
 ```
 
-mc-dispatch 路由表有一行指向 mc-orchestrate，其余路由逻辑完全不变。
+mc-cmo 路由表有一行指向 mc-orchestrate，其余路由逻辑完全不变。
 
 ---
 
@@ -164,6 +164,33 @@ C · 完整 20 步全链路
 
 ---
 
+### 评审反馈环（Step 18 ↔ Step 19 之间）
+
+**进入 Step 18 前，先把 `.status.json` 的 `review_loop.iteration` 归零**（防止同一
+campaign 二次运行时残留旧计数导致一上来就暂停）。然后执行反馈环：
+
+1. 运行 Step 18 mc-review，**并在调用时明确要求它输出 `### 评审结论` 结构化块**
+   （orchestrate 主动索取，不依赖 mc-review 自行判断是否在链路中）。解析该块的 `verdict`。
+   若未拿到结构化块，视为 `verdict: revise` 并重试一次索取。
+2. `verdict == pass` → 直接进入 Step 19，结束反馈环。
+3. `verdict == revise`：
+   a. 读 `.status.json` 的 `review_loop.iteration`（缺省 0）。
+   b. `iteration >= review_loop.max`（=3）→ **暂停**：展示残留 `severity: block`
+      findings 列表 + 当前产出版本，交用户决策（手改 / 放行进 Step 19 / 再跑一轮），
+      结束自动反馈环。
+   c. 否则：取所有 `severity: block` findings 的 `skill` 去重集合，逐个重跑对应步骤——
+      **指示该技能读取现有产出文件、针对 `issue` 列表定向修订（不是从零盲重生成，
+      避免反复犯同一错误烧光轮次）**，把该文件的 `issue` 列表作为 cmo_context 注入，
+      重跑后经 finalize.mjs 覆盖原文件。（只重跑生成 block 文件的那一步，不级联重跑其下游。）
+   d. `iteration += 1`，连同 `last_verdict` / `blocked_files` 写回 `.status.json`。
+   e. 重跑 Step 18 mc-review，回到第 1 步。
+
+进度行：`🔁 评审反馈环 第 {iteration+1}/3 轮 · 重跑 {skill 列表}...`
+
+`warn` 级 finding 不触发重跑，仅在 Phase 4 汇总交付卡中标注「⚠️ N 项未阻断建议」。
+
+---
+
 ### 批次执行规则
 
 - 同一批次内所有步骤连续执行，无需等待用户输入
@@ -225,6 +252,7 @@ C · 完整 20 步全链路
 
 ⏱ 执行时长：{N} 分钟
 📌 {N} 个智能暂停点，{M} 个假设字段（已标注 ⚠️）
+🔁 评审反馈环：{iteration} 轮，最终 {pass / 暂停交用户}（仅当反馈环触发过时显示）
 
 ➡️  下一步：
    · 查看 brand.md 确认品牌方向
