@@ -19,3 +19,6 @@ marketer-copy-philosophy.md
 
 # Anti-piracy watermarking (keep private — source reveals stripping method)
 scripts/fingerprint.mjs
+
+# Local tooling state (not part of repo)
+.omx/

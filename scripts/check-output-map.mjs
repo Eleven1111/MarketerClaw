@@ -15,10 +15,10 @@ function parseReverseMap() {
   return map;
 }
 
-// Parse mc-dispatch routing table: rows "| desc | mc-skill | files |"
+// Parse mc-cmo routing table: rows "| desc | mc-skill | files |"
 // Build skill → 主产出文件 column string.
 function parseDispatchFiles() {
-  const md = readFileSync(join(ROOT, "skills/mc-dispatch/SKILL.md"), "utf-8");
+  const md = readFileSync(join(ROOT, "skills/mc-cmo/SKILL.md"), "utf-8");
   const skillFiles = {};
   for (const line of md.split("\n")) {
     const cells = line.split("|").map((c) => c.trim());
@@ -54,7 +54,7 @@ export function checkOutputMap() {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const { ok, conflicts } = checkOutputMap();
   if (ok) {
-    process.stdout.write("✅ reverse-map consistent with dispatch routing table\n");
+    process.stdout.write("✅ reverse-map consistent with cmo routing table\n");
   } else {
     process.stderr.write("❌ drift detected:\n" + conflicts.join("\n") + "\n");
     process.exit(1);

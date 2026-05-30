@@ -14,26 +14,26 @@ description: 全链路自主执行技能。用户说"从头做品牌"或"完整 
 - "全部帮我做" / "从零开始" / "完整执行" / "全套方案"
 - "run all" / "full pipeline" / "end to end" / "全流程"
 
-**不触发（单步请求走 mc-dispatch）：**
+**不触发（单步请求走 mc-cmo 路由）：**
 - "帮我写文案" → mc-copy
 - "做一个品牌策略" → mc-brand
 - "分析竞品" → mc-compete
 
 ---
 
-## 与 mc-dispatch 的关系
+## 与 mc-cmo 路由的关系
 
 ```
 用户请求
     │
-    ├─ 单步请求 ──────────────────→ mc-dispatch → 对应技能
+    ├─ 单步请求 ──────────────────→ mc-cmo（判断+路由）→ 对应技能
     │
     └─ 多步请求（全链路触发词）──→ mc-orchestrate
                                         │
                                         └─ 按依赖顺序调用各技能
 ```
 
-mc-dispatch 路由表有一行指向 mc-orchestrate，其余路由逻辑完全不变。
+mc-cmo 路由表有一行指向 mc-orchestrate，其余路由逻辑完全不变。
 
 ---
 
