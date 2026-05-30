@@ -164,6 +164,29 @@ C · 完整 20 步全链路
 
 ---
 
+### 评审反馈环（Step 18 ↔ Step 19 之间）
+
+Step 18 mc-review 完成后、进入 Step 19 mc-analytics 之前，执行反馈环：
+
+1. 解析 mc-review 输出的 `### 评审结论` 块的 `verdict`。
+2. `verdict == pass` → 直接进入 Step 19，结束反馈环。
+3. `verdict == revise`：
+   a. 读 `.status.json` 的 `review_loop.iteration`（缺省 0）。
+   b. `iteration >= review_loop.max`（=3）→ **暂停**：展示残留 `severity: block`
+      findings 列表 + 当前产出版本，交用户决策（手改 / 放行进 Step 19 / 再跑一轮），
+      结束自动反馈环。
+   c. 否则：取所有 `severity: block` findings 的 `skill` 去重集合，逐个重跑对应步骤——
+      把该文件的 `issue` 列表作为 cmo_context 注入，重跑后经 finalize.mjs 覆盖原文件。
+      （只重跑生成 block 文件的那一步，不级联重跑其下游。）
+   d. `iteration += 1`，连同 `last_verdict` / `blocked_files` 写回 `.status.json`。
+   e. 重跑 Step 18 mc-review，回到第 1 步。
+
+进度行：`🔁 评审反馈环 第 {iteration+1}/3 轮 · 重跑 {skill 列表}...`
+
+`warn` 级 finding 不触发重跑，仅在 Phase 4 汇总交付卡中标注「⚠️ N 项未阻断建议」。
+
+---
+
 ### 批次执行规则
 
 - 同一批次内所有步骤连续执行，无需等待用户输入
@@ -225,6 +248,7 @@ C · 完整 20 步全链路
 
 ⏱ 执行时长：{N} 分钟
 📌 {N} 个智能暂停点，{M} 个假设字段（已标注 ⚠️）
+🔁 评审反馈环：{iteration} 轮，最终 {pass / 暂停交用户}（仅当反馈环触发过时显示）
 
 ➡️  下一步：
    · 查看 brand.md 确认品牌方向
