@@ -29,10 +29,12 @@ import {
   existsSync,
   unlinkSync,
 } from "fs";
-import { resolve, join, dirname, basename } from "path";
+import { resolve, join, dirname } from "path";
 import { fileURLToPath } from "url";
+import { sanitizeSlug, resolveCampaignsDir, mutateStatus } from "./lib.mjs";
+import { checkCitations, formatWarnings } from "./check-citations.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const CAMPAIGNS_DIR = resolve(__dirname, "..", "campaigns");
+const CAMPAIGNS_DIR = resolveCampaignsDir(__dirname);
 
 // ── Arg parsing ──────────────────────────────────────────────────────────────
 
@@ -43,17 +45,23 @@ const get = (flag) => {
 };
 const has = (flag) => args.includes(flag);
 
-const slug = get("--slug");
+const rawSlug = get("--slug");
 const step = get("--step");
 const file = get("--file");
 const inputPath = get("--input");
 const skill = get("--skill");
 const markDone = has("--done");
 
-if (!slug || !step || !file) {
+if (!rawSlug || !step || !file) {
   process.stderr.write(
     "Usage: finalize.mjs --slug <slug> --step <step> --file <filename> [--input <file>]\n"
   );
+  process.exit(1);
+}
+
+const slug = sanitizeSlug(rawSlug);
+if (!slug) {
+  process.stderr.write("[finalize] Error: slug is empty after sanitization\n");
   process.exit(1);
 }
 
@@ -90,73 +98,70 @@ if (!content.trim()) {
 // ── Write to campaign directory ───────────────────────────────────────────────
 
 const campaignDir = join(CAMPAIGNS_DIR, slug);
-const targetPath = join(campaignDir, file);
-const targetDir = dirname(targetPath);
+const targetPath = resolve(campaignDir, file);
 
-// Safety: prevent directory traversal
-if (!targetPath.startsWith(campaignDir)) {
+// Safety: prevent directory traversal (slug is sanitized above; check file too)
+if (!targetPath.startsWith(campaignDir + "/") && targetPath !== campaignDir) {
   process.stderr.write("[finalize] Error: file path escapes campaign directory\n");
   process.exit(1);
 }
+const targetDir = dirname(targetPath);
 
 mkdirSync(targetDir, { recursive: true });
 writeFileSync(targetPath, content, "utf-8");
 
-// ── Update .status.json ───────────────────────────────────────────────────────
-
-const statusPath = join(campaignDir, ".status.json");
-let status = {};
-
-if (existsSync(statusPath)) {
-  try {
-    status = JSON.parse(readFileSync(statusPath, "utf-8"));
-  } catch {
-    // Reset on corrupt
-  }
+// Citation discipline lint — warnings only, never blocks delivery
+const citationWarnings = checkCitations(content);
+if (citationWarnings.length > 0) {
+  process.stderr.write(formatWarnings(citationWarnings, `${file}: `));
 }
+
+// ── Update .status.json (transactional — parallel batches run concurrently) ──
 
 const now = new Date().toISOString();
 
-if (!status.steps) status.steps = {};
-status.steps[step] = { status: "done", completedAt: now, file };
+await mutateStatus(campaignDir, (status) => {
+  if (!status.steps) status.steps = {};
+  status.steps[step] = { status: "done", completedAt: now, file };
 
-status.updatedAt = now;
-status.currentStep = step;
-status.currentSkill = skill ?? status.currentSkill ?? null;
+  status.updatedAt = now;
+  status.currentStep = step;
+  status.currentSkill = skill ?? status.currentSkill ?? null;
 
-if (markDone) {
-  status.status = "done";
-  status.completedAt = now;
-} else {
-  // Keep running unless all non-optional steps are done
-  status.status = "running";
-}
+  if (markDone) {
+    status.status = "done";
+    status.completedAt = now;
+  } else {
+    // Keep running unless all non-optional steps are done
+    status.status = "running";
+  }
 
-if (!status.log) status.log = [];
-status.log.push({
-  time: now,
-  level: "done",
-  message: `✓ ${step} → ${file} (${formatBytes(content.length)})`,
+  if (!status.log) status.log = [];
+  status.log.push({
+    time: now,
+    level: "done",
+    message: `✓ ${step} → ${file} (${formatBytes(content.length)})`,
+  });
+
+  if (status.log.length > 200) {
+    status.log = status.log.slice(-200);
+  }
+
+  return status;
 });
-
-if (status.log.length > 200) {
-  status.log = status.log.slice(-200);
-}
-
-writeFileSync(statusPath, JSON.stringify(status, null, 2), "utf-8");
 
 // ── Extract and print delivery card ──────────────────────────────────────────
 //
 // Looks for the delivery card block bounded by ━━━━━ lines.
 // If not found, prints a minimal fallback card.
 
-const BORDER = "━";
-// Greedy match: from first ━━━ border to the LAST ━━━ border in the content
-const cardPattern = /━{5,}[\s\S]*━{5,}/;
-const cardMatch = content.match(cardPattern);
+// Non-greedy block match; take the LAST card so example/template cards earlier
+// in the document body are never echoed into chat.
+const cardPattern = /━{5,}[\s\S]*?━{5,}/g;
+const cards = content.match(cardPattern);
 
-if (cardMatch) {
-  process.stdout.write(cardMatch[0].trim() + "\n");
+if (cards && cards.length > 0) {
+  process.stdout.write(cards[cards.length - 1].trim() + "\n");
 } else {
   // Fallback delivery card
   const fileSize = formatBytes(content.length);

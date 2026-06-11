@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# MarketerClaw installer  v2.0
+# MarketerClaw installer  v2.1
 # Usage:
 #   ./install.sh               → installs to ~/.openclaw/skills/ + ~/.openclaw/scripts/
+#   ./install.sh --claude      → installs to ~/.claude/skills/   (Claude Code)
+#   ./install.sh --hermes      → installs to ~/.hermes/skills/   (Hermes Agent)
 #   ./install.sh /path/to/ws   → installs to /path/to/ws/skills/ + /path/to/ws/scripts/
 #   ./install.sh --local       → installs to ./skills/ + ./scripts/ (current workspace)
 
@@ -12,13 +14,13 @@ SKILLS_SRC="$REPO_DIR/skills"
 SCRIPTS_SRC="$REPO_DIR/scripts"
 
 # Resolve target
-if [[ "${1:-}" == "--local" ]]; then
-  BASE_DIR="$(pwd)"
-elif [[ -n "${1:-}" ]]; then
-  BASE_DIR="${1}"
-else
-  BASE_DIR="$HOME/.openclaw"
-fi
+case "${1:-}" in
+  --local)  BASE_DIR="$(pwd)" ;;
+  --claude) BASE_DIR="$HOME/.claude" ;;
+  --hermes) BASE_DIR="$HOME/.hermes" ;;
+  "")       BASE_DIR="$HOME/.openclaw" ;;
+  *)        BASE_DIR="${1}" ;;
+esac
 
 TARGET_DIR="$BASE_DIR/skills"
 SCRIPTS_DST="$BASE_DIR/scripts"
