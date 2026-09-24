@@ -4,6 +4,9 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
+    # Tag pushes (v*) drive the "Create Release" step below; GitHub does not
+    # evaluate path filters for tag pushes, so every v* tag triggers a run.
+    tags: ["v*"]
     paths:
       - "skills/**"
       - ".github/workflows/package-skills.yml"
