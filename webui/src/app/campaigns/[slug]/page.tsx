@@ -19,6 +19,9 @@ export default function CampaignPage() {
   const [showConsole, setShowConsole] = useState(true);
   const agentStatus = useAgentStatus(slug);
 
+  // Refetch whenever the agent logs a new entry (setup/finalize append one per
+  // step), so the pipeline follows the run instead of freezing at page load.
+  const logCount = agentStatus.log?.length ?? 0;
   useEffect(() => {
     fetch(`/api/campaigns/${encodeURIComponent(slug)}`)
       .then((r) => r.json())
@@ -26,10 +29,15 @@ export default function CampaignPage() {
         if (!data.error) setCampaign(data);
       })
       .catch(() => {});
-  }, [slug]);
+  }, [slug, logCount]);
 
-  // Use agent status steps if available, else fall back to campaign data
   const steps: Record<string, StepStatus> = campaign?.steps ?? {};
+
+  // Orchestrate campaigns have no "brief" step — default to the first listed one.
+  useEffect(() => {
+    const ids = Object.keys(steps);
+    if (ids.length > 0 && !ids.includes(activeStep)) setActiveStep(ids[0]);
+  }, [steps, activeStep]);
   const pct = completionPercent(steps);
 
   return (

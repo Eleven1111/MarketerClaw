@@ -667,11 +667,16 @@ Schema 标签"有没有加"只是第一层检查，更常见的问题是加了�
 模块 3 的技术审计表默认靠人工搜索或用户提供数据填写。如果用户给了一个真实站点 URL，可以调用下面两个脚本拿真实数据，而不是靠推断——**能跑就跑，跑不出来就退回置信分级里的 `[推断]`，不要因为脚本失败就整段跳过审计**。
 
 ```bash
+# 定位 scripts/（与 mc-cmo「路径解析说明」同一探测顺序；已探测过可跳过）
+for base in "${MC_HOME:-}" ~/.openclaw ~/.claude ~/.hermes .; do
+  [ -n "$base" ] && [ -f "$base/scripts/setup.mjs" ] && SCRIPTS_DIR="$base/scripts" && break
+done
+
 # 站点级信号：robots.txt + sitemap.xml + staging 子域名暴露探测
-node scripts/check-site-signals.mjs https://example.com
+node "$SCRIPTS_DIR/check-site-signals.mjs" https://example.com
 
 # 单页 JSON-LD 结构化数据校验
-node scripts/check-schema.mjs https://example.com/some-page
+node "$SCRIPTS_DIR/check-schema.mjs" https://example.com/some-page
 ```
 
 两个脚本零外部依赖（只用 Node 内置 `fetch`/`dns`/`net`），输出结构化 JSON，直接对应模块 3 的表格：

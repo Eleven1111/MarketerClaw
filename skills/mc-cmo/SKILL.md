@@ -320,13 +320,13 @@ fi
 #### 第 2 步：初始化 Campaign
 
 ```bash
-node {SKILL_DIR}/../scripts/setup.mjs \
+node "$SCRIPTS_DIR/setup.mjs" \
   --slug "{slug}" \
   --skill "{skill}" \
   --step "{step}"
 ```
 
-`{SKILL_DIR}` 是本技能文件所在目录，`scripts/` 在其上级的 sibling 目录。此命令输出 `campaigns/{slug}`，确认目录已就位，`.status.json` 已初始化，WebUI 可立即看到这个 campaign。
+`$SCRIPTS_DIR` 由下方「路径解析说明」在对话开始时探测一次（安装布局是 `<base>/skills/` 与 `<base>/scripts/` 并列，不在技能目录内）。此命令输出 `campaigns/{slug}`，确认目录已就位，`.status.json` 已初始化，WebUI 可立即看到这个 campaign。
 
 #### 第 3 步：执行技能内容
 
@@ -343,7 +343,7 @@ MC_OUTPUT_EOF
 #### 第 4 步：后处理（finalize）
 
 ```bash
-node {SKILL_DIR}/../scripts/finalize.mjs \
+node "$SCRIPTS_DIR/finalize.mjs" \
   --slug   "{slug}" \
   --step   "{step}" \
   --file   "{output-filename}" \
