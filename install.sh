@@ -1,15 +1,52 @@
 #!/usr/bin/env bash
-# MarketerClaw installer  v2.1
+# MarketerClaw installer  v2.2
 # Usage:
 #   ./install.sh               → installs to ~/.openclaw/skills/ + ~/.openclaw/scripts/
 #   ./install.sh --claude      → installs to ~/.claude/skills/   (Claude Code)
 #   ./install.sh --hermes      → installs to ~/.hermes/skills/   (Hermes Agent)
 #   ./install.sh /path/to/ws   → installs to /path/to/ws/skills/ + /path/to/ws/scripts/
 #   ./install.sh --local       → installs to ./skills/ + ./scripts/ (current workspace)
+#
+# Works both from a checkout (./install.sh) and piped (curl … | bash). When
+# piped there is no script file on disk, so the source is downloaded from
+# MC_TARBALL_URL (default: main branch tarball on GitHub).
 
 set -euo pipefail
 
-REPO_DIR="$(cd "$(dirname "$0")" && pwd)"
+MC_TARBALL_URL="${MC_TARBALL_URL:-https://codeload.github.com/Eleven1111/MarketerClaw/tar.gz/refs/heads/main}"
+
+# Resolve source: a real checkout next to this script, or a fresh download.
+# ${BASH_SOURCE[0]} is empty when the script is read from stdin, so a piped
+# run never mistakes the caller's cwd (which may hold an older install) for
+# the source.
+SCRIPT_PATH="${BASH_SOURCE[0]:-}"
+REPO_DIR=""
+if [[ -n "$SCRIPT_PATH" && -f "$SCRIPT_PATH" ]]; then
+  candidate="$(cd "$(dirname "$SCRIPT_PATH")" && pwd)"
+  if [[ -f "$candidate/skills/mc-cmo/SKILL.md" && -d "$candidate/scripts" ]]; then
+    REPO_DIR="$candidate"
+  fi
+fi
+
+if [[ -z "$REPO_DIR" ]]; then
+  if ! command -v curl &>/dev/null || ! command -v tar &>/dev/null; then
+    echo "  ✖ curl and tar are required to download MarketerClaw" >&2
+    exit 1
+  fi
+  DOWNLOAD_DIR="$(mktemp -d)"
+  trap 'rm -rf "$DOWNLOAD_DIR"' EXIT
+  echo "  ⬇  Downloading MarketerClaw from $MC_TARBALL_URL"
+  if ! curl -fsSL "$MC_TARBALL_URL" | tar -xz -C "$DOWNLOAD_DIR" --strip-components=1; then
+    echo "  ✖ Download failed: $MC_TARBALL_URL" >&2
+    exit 1
+  fi
+  if [[ ! -f "$DOWNLOAD_DIR/skills/mc-cmo/SKILL.md" ]]; then
+    echo "  ✖ Downloaded archive does not look like MarketerClaw (skills/mc-cmo missing)" >&2
+    exit 1
+  fi
+  REPO_DIR="$DOWNLOAD_DIR"
+fi
+
 SKILLS_SRC="$REPO_DIR/skills"
 SCRIPTS_SRC="$REPO_DIR/scripts"
 
@@ -25,15 +62,33 @@ esac
 TARGET_DIR="$BASE_DIR/skills"
 SCRIPTS_DST="$BASE_DIR/scripts"
 
+# Installing a checkout onto itself (e.g. ./install.sh --local from the repo
+# root) would rm -rf each skill before copying it from the same path.
+mkdir -p "$TARGET_DIR"
+if [[ "$(cd "$SKILLS_SRC" && pwd -P)" == "$(cd "$TARGET_DIR" && pwd -P)" ]]; then
+  echo "  ✓ Source and target are the same directory ($TARGET_DIR) — already installed in place, nothing to do."
+  exit 0
+fi
+
 # Skills to install (all mc-* by default, or pass skill names as extra args)
 if [[ $# -gt 1 ]]; then
   SKILLS=("${@:2}")
 else
-  SKILLS=($(ls "$SKILLS_SRC"))
+  SKILLS=()
+  for dir in "$SKILLS_SRC"/mc-*/; do
+    SKILLS+=("$(basename "$dir")")
+  done
 fi
 
+for skill in "${SKILLS[@]}"; do
+  if [[ ! "$skill" =~ ^mc-[a-z0-9-]+$ ]]; then
+    echo "  ✖ Invalid skill name '$skill' (expected mc-<name>)" >&2
+    exit 1
+  fi
+done
+
 echo ""
-echo "  MarketerClaw Installer v2.0"
+echo "  MarketerClaw Installer v2.2"
 echo "  ─────────────────────────────────────"
 echo "  Source skills  : $SKILLS_SRC"
 echo "  Source scripts : $SCRIPTS_SRC"
@@ -42,8 +97,6 @@ echo "  Target scripts : $SCRIPTS_DST"
 echo "  Skills         : ${SKILLS[*]}"
 echo "  ─────────────────────────────────────"
 echo ""
-
-mkdir -p "$TARGET_DIR"
 
 installed=0
 for skill in "${SKILLS[@]}"; do
@@ -55,8 +108,11 @@ for skill in "${SKILLS[@]}"; do
     continue
   fi
 
+  # Copy first, swap second: a failed copy never leaves the old skill deleted.
+  rm -rf "$dst.mc-new"
+  cp -R "$src" "$dst.mc-new"
   rm -rf "$dst"
-  cp -R "$src" "$dst"
+  mv "$dst.mc-new" "$dst"
   echo "  ✅ $skill → $dst"
   installed=$((installed + 1))
 done
