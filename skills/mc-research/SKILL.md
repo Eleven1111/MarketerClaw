@@ -238,7 +238,7 @@ description: 市场调研技能。输出行业趋势、品类机会、人群洞�
 ### 欧洲市场调研重点
 
 - **市场差异**：欧洲不是一个市场，需按国家拆分（UK/DE/FR 优先级排序）
-- **合规成本**：GDPR 数据合规、EU Green Claims、各国本地化要求
+- **合规成本**：GDPR 数据合规、EU 环保声明新规（ECGT 指令 2024/825，2026-09-27 起适用；Green Claims Directive 仍是提案）、各国本地化要求——具体规则见 mc-review 的 `references/compliance-eu.md`
 - **渠道格局**：Amazon.de/.co.uk/.fr 差异、本地电商平台（Zalando/ASOS/Cdiscount）
 - **价格敏感度**：各国消费力差异和定价策略
 
