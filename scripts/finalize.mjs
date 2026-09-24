@@ -42,6 +42,7 @@ import {
   checkRequiredFields,
   formatWarnings as formatFieldWarnings,
 } from "./check-required-fields.mjs";
+import { extractDeliveryCard } from "./delivery-card.mjs";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const CAMPAIGNS_DIR = resolveCampaignsDir(__dirname);
 
@@ -179,13 +180,12 @@ await mutateStatus(campaignDir, (status) => {
 // Looks for the delivery card block bounded by ━━━━━ lines.
 // If not found, prints a minimal fallback card.
 
-// Non-greedy block match; take the LAST card so example/template cards earlier
-// in the document body are never echoed into chat.
-const cardPattern = /━{5,}[\s\S]*?━{5,}/g;
-const cards = content.match(cardPattern);
+// Line-anchored extraction of the LAST card (see delivery-card.mjs) so
+// example/template cards earlier in the document body are never echoed.
+const card = extractDeliveryCard(content);
 
-if (cards && cards.length > 0) {
-  process.stdout.write(cards[cards.length - 1].trim() + "\n");
+if (card) {
+  process.stdout.write(card + "\n");
 } else {
   // Fallback delivery card
   const fileSize = formatBytes(content.length);
