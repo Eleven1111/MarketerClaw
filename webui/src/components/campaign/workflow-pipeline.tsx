@@ -25,16 +25,19 @@ const STEP_ICONS: Record<string, JSX.Element> = {
 };
 
 export function WorkflowPipeline({ steps, activeStep, onSelectStep }: WorkflowPipelineProps) {
+  // Only the steps in this campaign's plan (its tier, or the manual flow).
+  const visibleSteps = WORKFLOW_STEPS.filter((step) => step.id in steps);
+
   return (
     <div className="space-y-0.5">
       <p className="mb-3 px-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
         Pipeline
       </p>
 
-      {WORKFLOW_STEPS.map((step, idx) => {
+      {visibleSteps.map((step, idx) => {
         const status = steps[step.id] ?? "pending";
         const isActive = activeStep === step.id;
-        const isLast = idx === WORKFLOW_STEPS.length - 1;
+        const isLast = idx === visibleSteps.length - 1;
         const icon = STEP_ICONS[step.id];
 
         return (

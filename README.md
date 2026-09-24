@@ -80,12 +80,14 @@ A clean SaaS-style dashboard for real-time visibility into agent execution.
 ```bash
 cd webui
 npm install
-npm run dev   # http://localhost:3000
+npm run dev   # http://127.0.0.1:3000 (local only — campaign files contain budgets and strategy)
 ```
+
+Campaigns are read from `$MC_WORKSPACE/campaigns` when `MC_WORKSPACE` is set, otherwise from the repo root's `campaigns/`.
 
 **Features:**
 - Campaign list with workflow progress
-- 12-step pipeline visualization with live status
+- Pipeline visualization with live status (orchestrate tier A/B/C steps, or the manual mc-campaign flow)
 - Markdown file viewer for all generated outputs
 - Agent console with real-time execution log
 - SSE-based live status updates (no manual refresh)

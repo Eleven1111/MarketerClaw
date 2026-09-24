@@ -11,14 +11,22 @@ interface FileViewerProps {
 }
 
 export function FileViewer({ campaignSlug, stepId }: FileViewerProps) {
-  const [content, setContent] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [content, setContentState] = useState<string | null>(null);
+  const [loading, setLoadingState] = useState(true);
+  const [error, setErrorState] = useState<string | null>(null);
 
   const step = WORKFLOW_STEPS.find((s) => s.id === stepId);
   const fileName = step?.file ?? `${stepId}.md`;
 
   useEffect(() => {
+    // Ignore responses from a previous step: switching steps quickly (or the
+    // page moving off its initial default) must not let an older 404 overwrite
+    // the current file.
+    let stale = false;
+    const setContent = (v: string | null) => { if (!stale) setContentState(v); };
+    const setError = (v: string | null) => { if (!stale) setErrorState(v); };
+    const setLoading = (v: boolean) => { if (!stale) setLoadingState(v); };
+
     setLoading(true);
     setError(null);
 
@@ -48,7 +56,7 @@ export function FileViewer({ campaignSlug, stepId }: FileViewerProps) {
         })
         .catch(() => setError("加载失败"))
         .finally(() => setLoading(false));
-      return;
+      return () => { stale = true; };
     }
 
     fetch(
@@ -64,6 +72,7 @@ export function FileViewer({ campaignSlug, stepId }: FileViewerProps) {
         setError("该步骤尚未产出文件");
       })
       .finally(() => setLoading(false));
+    return () => { stale = true; };
   }, [campaignSlug, stepId, fileName]);
 
   if (loading) {

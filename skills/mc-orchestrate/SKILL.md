@@ -119,6 +119,8 @@ C · 完整 20 步全链路
 
 信息收集完成后调用 `setup.mjs` 初始化 campaign 目录和 `.status.json`，**必须带上 `--tier <A|B|C>`**（本次用户选择的档位）——这是 Phase -1 断点检测能够自动续跑而不需要用户手动指定"从 Step N 开始"的前提。
 
+**`--step` 取值约定**：setup / finalize 的 `--step` 一律用下方依赖表「输出文件」去掉 `.md` 后的名字（`brand`、`storyteller`、`strategy`、`content`、`review`…），不用 Step 序号。`.status.json` 的 `steps` 以这个名字为键，Phase -1 按依赖表把它映射回 Step 序号；WebUI 也按同一组名字展示进度。
+
 ---
 
 ### Phase 1：按依赖拓扑执行
