@@ -3,7 +3,7 @@
  * sync-disciplines.mjs — Stamp the shared disciplines into each skill.
  *
  * ICE scoring, data-confidence levels and the setup/finalize lifecycle used to
- * live only in mc-cmo. A `/mc-xxx` direct call — and every single-skill
+ * live only in mc-cmo; the brand-memory schema lived only in mc-memory. A `/mc-xxx` direct call — and every single-skill
  * install, since package-skills.yml ships each skill as its own archive —
  * never loads mc-cmo, so those rules silently did not apply. A "see mc-cmo"
  * pointer would not help either: ../mc-cmo does not exist in a single-skill
@@ -31,14 +31,15 @@ export const END = "<!-- mc-disciplines:end -->";
  * lifecycle section finalizes (step = file without ".md", first path segment
  * for directories — the mc-orchestrate convention); a skill with several
  * modes lists one file per mode. ICE and confidence lists
- * are the applicability lists mc-cmo used to carry. Skills without a
- * campaign file say why, so a new skill cannot be left out by accident.
+ * are the applicability lists mc-cmo used to carry; `memory` marks the skills
+ * that read or write brand-memory.md. Skills with no block say why, so a new
+ * skill cannot be left out by accident.
  */
 export const SKILLS = {
   "mc-aigc": { files: ["aigc.md"] },
   "mc-analytics": { files: ["analytics.md"], ice: true, confidence: true },
   "mc-automation": { files: ["automation.md"] },
-  "mc-brand": { files: ["brand.md"] },
+  "mc-brand": { files: ["brand.md"], memory: true },
   "mc-campaign": { files: ["brief.md", "strategy.md", "content/{平台名}.md", "channel.md"], ice: true },
   "mc-cmo": { none: "router: runs the other skills' flows itself" },
   "mc-community": { files: ["community.md"] },
@@ -46,24 +47,24 @@ export const SKILLS = {
   "mc-content": { files: ["content/{平台}.md"], ice: true },
   "mc-copy": { files: ["copy.md"] },
   "mc-dashboard": { files: ["dashboard.md"], ice: true, confidence: true },
-  "mc-diagnose": { files: ["diagnose.md"], ice: true },
+  "mc-diagnose": { files: ["diagnose.md"], ice: true, memory: true },
   "mc-dtc": { files: ["dtc.md"], ice: true, confidence: true },
   "mc-geo": { files: ["geo.md"], ice: true, confidence: true },
-  "mc-insight": { files: ["insight.md"] },
+  "mc-insight": { files: ["insight.md"], memory: true },
   "mc-kol": { files: ["kol.md"], ice: true, confidence: true },
   "mc-livestream": { files: ["livestream.md"] },
-  "mc-memory": { none: "writes memory/, not a campaign file" },
+  "mc-memory": { memory: true },
   "mc-monitor": { files: ["monitor.md"], confidence: true },
   "mc-orchestrate": { none: "orchestrator: runs setup/finalize for every step itself" },
   "mc-poster": { none: "outputs a design spec in the conversation, no campaign file" },
   "mc-product": { files: ["product.md"] },
-  "mc-report": { files: ["report.md"] },
+  "mc-report": { files: ["report.md"], memory: true },
   "mc-research": { files: ["research.md"], confidence: true },
   "mc-retain": { files: ["retain.md"], ice: true, confidence: true },
   "mc-review": { files: ["review.md"] },
   "mc-selection": { files: ["selection.md"], confidence: true },
   "mc-seo": { files: ["seo.md"], ice: true, confidence: true },
-  "mc-storyteller": { files: ["storyteller.md"] },
+  "mc-storyteller": { files: ["storyteller.md"], memory: true },
 };
 
 export const stepFor = (file) => file.replace(/\.md$/, "").split("/")[0];
@@ -80,17 +81,21 @@ function modesLine(files) {
 /** The generated block for one skill, or null when no discipline applies. */
 export function renderBlock(skill, spec, read = template) {
   if (spec.none) return null;
-  const [only] = spec.files;
-  const multi = spec.files.length > 1;
+  const files = spec.files ?? [];
+  const [only] = files;
+  const multi = files.length > 1;
   const fill = (text) =>
     text
-      .replace("\n{{modes}}\n", multi ? `\n${modesLine(spec.files)}` : "")
+      .replace("\n{{modes}}\n", multi ? `\n${modesLine(files)}` : "")
       .replaceAll("{{skill}}", skill)
       .replaceAll("{{step}}", multi ? "{step}" : stepFor(only))
       .replaceAll("{{file}}", multi ? "{file}" : only);
-  const parts = [fill(read("lifecycle"))];
+  const parts = [];
+  if (files.length) parts.push(fill(read("lifecycle")));
   if (spec.ice) parts.push(read("ice"));
   if (spec.confidence) parts.push(read("confidence"));
+  if (spec.memory) parts.push(read("memory"));
+  if (!parts.length) throw new Error(`${skill}: no discipline applies — mark it { none: reason }`);
   return [START, "", "## 通用纪律", "", parts.join("\n\n"), "", END].join("\n");
 }
 
