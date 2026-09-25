@@ -327,7 +327,7 @@ description: 海外独立站全栈操盘技能。覆盖技术选型、站内转�
 |------|------|
 | 0 评价冷启动 | 送 20-50 个产品给真实用户换评价（非虚假评价；不得要求好评，评价中须披露获赠）；产品内附评价引导卡 |
 | 有评价后 | 自动化：购后 7 天发送评价请求邮件（带直达链接）|
-| 规模化 | 带图评价奖励（积分/折扣，只看是否评价，不得以好评为条件；奖励须在评价中披露，Amazon 等平台对激励评价另有限制，先查平台规则）；UGC 内容二次使用于广告和社媒 |
+| 规模化 | 带图评价奖励（积分/折扣，不得以好评为条件，并在评价处披露激励；Amazon 站内除 Vine 外禁止任何激励评价）；UGC 内容二次使用于广告和社媒 |
 | 负面评价 | 48 小时内回复；公开回复展示解决态度；严重问题私信处理 |
 
 ### PR & 媒体引用
@@ -374,7 +374,7 @@ description: 海外独立站全栈操盘技能。覆盖技术选型、站内转�
 
 | 模式 | 适合场景 | 优势 | 劣势 |
 |------|---------|------|------|
-| 国内直发 | 测试期、低客单、长尾市场 | 无海外仓成本 | 物流慢（7-15天）|
+| 国内直发 | 测试期、低客单、长尾市场 | 无海外仓成本 | 物流慢（7-15天）；美国已无小额免税、欧盟 2026-07 起征小包关税，直发成本优势明显缩小（见模块 8 税务）|
 | 海外仓 (3PL) | 已验证市场、需要快物流 | 3-5 天送达 | 库存风险 + 仓储费 |
 | 平台仓 (FBA Multi-Channel) | 同时做 Amazon + 独立站 | 利用 FBA 物流 | 成本高、包装无品牌 |
 | 本地仓 | 单一大市场深耕 | 次日达可能 | 固定成本高 |
@@ -527,12 +527,17 @@ description: 海外独立站全栈操盘技能。覆盖技术选型、站内转�
 
 | 市场 | 关键税务要求 |
 |------|-------------|
-| 美国 | Sales Tax：Nexus 州需收取（Shopify Tax / TaxJar 自动处理）|
-| 欧盟 | VAT：€150 以下 IOSS 申报；€150 以上海关申报。需 IOSS 号 |
+| 美国 | Sales Tax：Nexus 州需收取（Shopify Tax / TaxJar 自动处理）。进口关税：$800 小额免税（de minimis）已对所有国家暂停（2025-08-29 起；中国/香港 2025-05-02 起），低价值包裹同样需缴关税——直邮测款的利润模型必须计入关税 [1] |
+| 欧盟 | VAT：€150 以下可用 IOSS 申报；€150 以上海关申报。关税：2026-07-01 起取消 €150 以下免关税，改为按商品税目每项征收 €3 临时关税（至 2028-07-01）[2] |
 | 英国 | VAT：£135 以下卖家代收代缴；需 UK VAT 注册 |
 | 日本 | 消费税：¥16,666 以下免税进口；以上需缴纳消费税 |
 | 加拿大 | GST/HST：超过 $30K CAD 年收入需注册 |
-| 澳洲 | GST：$75 AUD 以下免 GST；以上需注册并代收 |
+| 澳洲 | GST：A$1,000 及以下的低价值进口商品，由境外卖家在销售时代收 10% GST；对澳销售额达 A$75,000 须注册 [3] |
+
+> 美国、欧盟、澳洲三行核实于 2026-09-25；英国、日本、加拿大三行本次未复核。政策变化快，上线前以官方为准并请税务顾问确认。
+> [1] CBP：Suspension of Duty-Free De Minimis Treatment — https://www.cbp.gov/sites/default/files/2025-08/factsheet_suspension_of_duty-free_de_minimis_treatment.pdf
+> [2] European Commission：€3 customs duty for low-value parcels — https://commission.europa.eu/news-and-media/news/ensuring-fairness-and-safety-eur3-customs-duty-low-value-parcels-2026-06-29_en
+> [3] ATO：GST on low value imported goods — https://www.ato.gov.au/businesses-and-organisations/international-tax-for-business/gst-for-non-resident-businesses/gst-on-low-value-imported-goods
 ```
 
 ---

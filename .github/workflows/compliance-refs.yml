@@ -1,0 +1,43 @@
+name: Compliance references
+
+# mc-review's rule tables go stale as laws change. Structure is checked on
+# every change; freshness (last_verified <= 180 days) is checked weekly too, so
+# an untouched repo still gets a red run when the rules are due for review.
+on:
+  push:
+    branches: [main]
+    paths:
+      - "skills/mc-review/**"
+      - "scripts/check-compliance-refs.mjs"
+      - "tests/compliance-refs.test.mjs"
+      - ".github/workflows/compliance-refs.yml"
+  pull_request:
+    paths:
+      - "skills/mc-review/**"
+      - "scripts/check-compliance-refs.mjs"
+      - "tests/compliance-refs.test.mjs"
+      - ".github/workflows/compliance-refs.yml"
+  schedule:
+    - cron: "0 1 * * 1" # Mondays 01:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Unit tests for the checker
+        run: node --test tests/compliance-refs.test.mjs
+
+      - name: Structure and freshness of the rule tables
+        run: node scripts/check-compliance-refs.mjs --freshness
