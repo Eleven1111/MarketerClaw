@@ -104,15 +104,36 @@ export interface SkillInfo {
   standalone: boolean;
 }
 
+// Every skill under skills/, in workflow order. tests/webui-skills.test.mjs
+// fails when a skill is added or removed without updating this list.
 export const SKILLS: SkillInfo[] = [
+  { id: "mc-cmo", name: "CMO", description: "判断请求、路由到技能", standalone: true },
+  { id: "mc-orchestrate", name: "Orchestrate", description: "全链路自主执行", standalone: true },
   { id: "mc-campaign", name: "Campaign", description: "全流程作战编排", standalone: true },
+  { id: "mc-brand", name: "Brand", description: "品牌策略与定位", standalone: true },
+  { id: "mc-storyteller", name: "Storyteller", description: "品牌叙事体系", standalone: true },
+  { id: "mc-insight", name: "Insight", description: "文化与人群洞察", standalone: true },
   { id: "mc-research", name: "Research", description: "市场调研", standalone: true },
+  { id: "mc-compete", name: "Compete", description: "竞品情报分析", standalone: true },
+  { id: "mc-monitor", name: "Monitor", description: "竞品实时监控", standalone: true },
+  { id: "mc-selection", name: "Selection", description: "选品", standalone: true },
+  { id: "mc-product", name: "Product", description: "造品与产品定义", standalone: true },
   { id: "mc-content", name: "Content", description: "单平台内容生产", standalone: true },
+  { id: "mc-copy", name: "Copy", description: "文案写作", standalone: true },
+  { id: "mc-poster", name: "Poster", description: "商业海报设计指导", standalone: true },
+  { id: "mc-aigc", name: "AIGC", description: "AI 图片与视频素材", standalone: true },
+  { id: "mc-kol", name: "KOL", description: "达人营销策略", standalone: true },
+  { id: "mc-livestream", name: "Livestream", description: "直播运营", standalone: true },
+  { id: "mc-seo", name: "SEO", description: "搜索引擎优化", standalone: true },
   { id: "mc-geo", name: "GEO", description: "AI 搜索引擎优化", standalone: true },
+  { id: "mc-community", name: "Community", description: "私域与社群运营", standalone: true },
   { id: "mc-automation", name: "Automation", description: "营销自动化", standalone: true },
+  { id: "mc-retain", name: "Retain", description: "客户留存与复购", standalone: true },
   { id: "mc-dtc", name: "DTC", description: "海外独立站全栈蓝图", standalone: true },
   { id: "mc-analytics", name: "Analytics", description: "数据分析与诊断", standalone: true },
-  { id: "mc-review", name: "Review", description: "品牌调性+合规双审", standalone: true },
-  { id: "mc-compete", name: "Compete", description: "竞品情报分析", standalone: true },
+  { id: "mc-dashboard", name: "Dashboard", description: "健康度看板与异常预警", standalone: true },
+  { id: "mc-diagnose", name: "Diagnose", description: "营销全链路诊断", standalone: true },
   { id: "mc-report", name: "Report", description: "Campaign 复盘与周报", standalone: true },
+  { id: "mc-review", name: "Review", description: "品牌调性+合规双审", standalone: true },
+  { id: "mc-memory", name: "Memory", description: "品牌记忆读写", standalone: true },
 ];
