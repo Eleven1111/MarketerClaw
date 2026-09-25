@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { SKILLS } from "@/lib/types";
 
 const NAV = [
   {
@@ -74,16 +75,15 @@ export function Sidebar() {
           Skills
         </p>
         <div className="flex flex-wrap gap-1 px-2">
-          {["Campaign", "Research", "Content", "GEO", "Auto", "DTC", "Analytics", "Review", "Compete", "Report"].map(
-            (s) => (
-              <span
-                key={s}
-                className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500"
-              >
-                {s}
-              </span>
-            )
-          )}
+          {SKILLS.map((s) => (
+            <span
+              key={s.id}
+              title={`${s.id} · ${s.description}`}
+              className="rounded-md bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500"
+            >
+              {s.name}
+            </span>
+          ))}
         </div>
       </div>
 
