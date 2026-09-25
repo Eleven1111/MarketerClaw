@@ -233,12 +233,11 @@ description: 营销全流程作战编排。输入自然语言 brief，按角色�
 
 ### 合规审查
 
-- **国内市场**：检查广告法风险（绝对化用语、功效承诺、虚假原价、医疗暗示）+ 平台规则
-- **美国市场**：检查 FTC Endorsement Guides（付费披露、功效声明、虚假证言）+ 平台规则
-- **英国市场**：检查 ASA/CAP Code（广告标识、误导声明、HFSS 限制）
-- **欧盟市场**：检查 GDPR（数据收集、cookie 同意）+ EU 广告规则 + Green Claims Directive
-- **日本市场**：检查景品表示法 + ステマ規制 + 薬機法
-- **跨境 campaign**：各目标市场法规分别审查
+按 mc-review 的规则执行，**不在本技能里另列法规清单**（两套清单会各自过期、互相矛盾）：
+
+- 按 mc-review「合规审查 — 法域规则按需加载」表加载 `skills/mc-review/references/` 下对应法域的规则表；跨境 campaign 各目标市场分别加载
+- 涉及敏感品类追加 `sensitive-categories.md`，含 AI 生成素材追加 `ai-content.md`
+- 每条合规结论注明规则表中的依据；规则表 `last_verified` 超过 180 天的，在 review.md 中标注需人工复核
 - 对照 brief 中的风险边界
 - 给出 **通过 / 需修改** 结论，附具体风险项和修改建议
 
