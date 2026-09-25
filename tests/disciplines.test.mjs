@@ -37,7 +37,7 @@ test("each listed output file is one the skill or mc-orchestrate actually names"
   for (const [skill, spec] of Object.entries(SKILLS)) {
     if (spec.none) continue;
     const body = withoutBlock(read(skill));
-    for (const file of spec.files) {
+    for (const file of spec.files ?? []) {
       const inSkill = body.includes(`campaigns/{slug}/${file}`) || body.includes(`campaigns/{project-slug}/${file}`);
       const inTable = orchestrate.includes(`| ${skill} | ${file} |`);
       if (!inSkill && !inTable) missing.push(`${skill}: ${file}`);
@@ -68,7 +68,8 @@ test("blocks carry exactly the disciplines listed for the skill", () => {
       assert.ok(!text.includes(START), `${skill} should have no block`);
       continue;
     }
-    assert.ok(text.includes("### 产出流程"), `${skill}: lifecycle missing`);
+    assert.equal(text.includes("### 产出流程"), Boolean(spec.files), `${skill}: lifecycle section`);
+    assert.equal(text.includes("### 品牌记忆格式"), Boolean(spec.memory), `${skill}: memory section`);
     assert.equal(text.includes("### ICE 评分"), Boolean(spec.ice), `${skill}: ICE section`);
     assert.equal(text.includes("### 数据置信分级"), Boolean(spec.confidence), `${skill}: confidence section`);
   }
@@ -93,4 +94,59 @@ test("applyBlock inserts before the delivery section, then replaces in place", (
   assert.ok(twice.includes("v2") && !twice.includes("v1"));
   assert.equal(applyBlock(twice, `${START}\nv2\n${END}`), twice);
   assert.match(applyBlock("# S\nbody\n", `${START}\nv\n${END}`), /body\n\n---\n\n<!-- mc-disciplines:start/);
+});
+
+// ── brand-memory schema ─────────────────────────────────────────────────────
+// Writers used section names mc-memory's layered template did not have, and
+// mc-insight wrote unverified insights into the resident layer mc-cmo loads
+// first. The schema table in templates/disciplines/memory.md is the contract.
+
+const memoryTemplate = readFileSync(join(ROOT, "templates", "disciplines", "memory.md"), "utf-8");
+
+function memorySchema(text) {
+  return [...text.matchAll(/^\| (常驻层|档案层|分隔) \| `([^`]+)` \|[^\n]*\| ([^|\n]+) \|$/gm)].map(([, layer, key, writers]) => ({
+    layer,
+    key,
+    section: key.startsWith("## ") ? key.slice(3) : null,
+    writers: writers.trim(),
+  }));
+}
+
+const schema = memorySchema(memoryTemplate);
+const MARKER = schema.find((r) => r.layer === "分隔")?.key;
+
+test("the seed brand-memory.md has exactly the schema's sections, in order", () => {
+  assert.ok(schema.length >= 8 && MARKER?.startsWith("<!-- ARCHIVE BELOW"), "schema table not parsed");
+  const seed = readFileSync(join(ROOT, "memory", "brand-memory.md"), "utf-8");
+  const layout = seed
+    .split("\n")
+    .filter((l) => l.startsWith("## ") || l.startsWith("<!-- ARCHIVE BELOW"))
+    .map((l) => l.trim());
+  assert.deepEqual(layout, schema.map((r) => r.key));
+});
+
+test("memory writers only write sections the schema assigns to them", () => {
+  const problems = [];
+  for (const [skill, spec] of Object.entries(SKILLS)) {
+    if (!spec.memory || skill === "mc-memory") continue; // mc-memory administers every section
+    const body = withoutBlock(read(skill));
+    for (const line of body.split("\n")) {
+      if (!/写入|追加|补充/.test(line)) continue;
+      for (const [, name] of line.matchAll(/`## ([^`]+)`/g)) {
+        const row = schema.find((r) => r.section === name);
+        if (!row) problems.push(`${skill}: writes "## ${name}", which is not in the schema`);
+        else if (!row.writers.includes(skill) && !row.writers.includes("所有写回技能"))
+          problems.push(`${skill}: writes "## ${name}", owned by ${row.writers}`);
+      }
+    }
+  }
+  assert.deepEqual(problems, []);
+});
+
+test("unverified output never targets the resident layer", () => {
+  const resident = schema.filter((r) => r.layer === "常驻层").map((r) => r.section);
+  const insight = withoutBlock(read("mc-insight"));
+  const targets = [...insight.matchAll(/(?:追加到|写入|补充到) `## ([^`]+)`/g)].map((m) => m[1]);
+  assert.ok(targets.length >= 2, "mc-insight write-back not found");
+  assert.deepEqual(targets.filter((t) => resident.includes(t)), []);
 });

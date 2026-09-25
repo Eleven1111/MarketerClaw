@@ -237,7 +237,7 @@ fi
 | `brand.md` 不存在，且调用的是 mc-brand | 正常执行，这是创建 brand.md 的步骤 |
 | `brand.md` 不存在，且调用的是其他技能 | 正常执行（判断阶段已确认过是否需要品牌定位） |
 | `storyteller.md` 存在 | 同时加载叙事体系（核心冲突、角色、母题），供 mc-content / mc-aigc / mc-kol 使用 |
-| `memory/brand-memory.md` 存在 | 读取**常驻层**（文件开头到 `<!-- ARCHIVE BELOW` 标记为止）注入，优先于当次 campaign 的 brand.md。标记以下的档案层不默认加载——仅当技能明确需要历史记录（mc-report 复盘、mc-diagnose 查既往诊断、用户主动问"以前做过什么"）时按需读取。文件无该标记时（旧格式）读取全文，并提示可通过 mc-memory 做一次分层压缩 |
+| `memory/brand-memory.md` 存在 | 读取**常驻层**（文件开头到 `<!-- ARCHIVE BELOW` 标记为止）注入，优先于当次 campaign 的 brand.md。标记以下的档案层不默认加载——仅当技能明确需要历史记录（mc-report 复盘、mc-diagnose 查既往诊断、用户主动问"以前做过什么"）时按需读取。文件无该标记时（旧格式）读取全文，并提示可通过 mc-memory「迁移旧格式」按新章节表整理（只调整章节归属，不改条目原文） |
 | `brief.md` 含 `brand: {slug}` 字段 | 从 `memory/{slug}/brand-memory.md` 读取替代默认路径 |
 
 **v1 冲突处理**：brand-memory.md 与当次 brand.md 内容冲突时，两者共同提供上下文，由执行技能自行综合，不强制去重。
