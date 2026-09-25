@@ -230,3 +230,11 @@ Instagram · TikTok · YouTube · Facebook · X · Pinterest · LinkedIn · Amaz
 3. **增量执行 / Incremental execution** — 不必一次跑完全流程
 4. **零配置 / Zero configuration** — OpenClaw 已处理好模型配置
 5. **全球市场原生 / Global-native** — 国内 + 海外 + 多法域，一套技能包覆盖
+
+---
+
+## 许可 · License
+
+源码可见，但不是开源软件（source-available）。个人非商业用途可免费安装、使用和修改；商业使用（为付费客户产出交付物、并入收费产品或服务、部署到商业 SaaS）和再分发都需要版权方的书面许可。完整条款见 [LICENSE](LICENSE)。
+
+Source-available, not open source. Free for personal, non-commercial use; commercial use and redistribution require written permission. See [LICENSE](LICENSE).

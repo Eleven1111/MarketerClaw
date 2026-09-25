@@ -14,7 +14,8 @@ personal, non-commercial purposes, subject to the following conditions:
    Commercial use — including but not limited to using the Skills to
    generate deliverables for paying clients, incorporating the Skills
    into a paid product or service, or deploying the Skills in a
-   commercial SaaS environment — is permitted under this license.
+   commercial SaaS environment — is NOT permitted under this license
+   without prior written permission from the copyright holders.
 
 3. REDISTRIBUTION PROHIBITED
    You may NOT redistribute, republish, resell, sublicense, or
@@ -27,16 +28,9 @@ personal, non-commercial purposes, subject to the following conditions:
 
 4. ATTRIBUTION
    Any permitted use must retain this license file and all copyright
-   notices. Removal of watermarks, fingerprints, or other origin
-   markers embedded in the Skills is expressly prohibited.
+   notices.
 
-5. INTEGRITY
-   You may NOT remove, alter, or circumvent any technical protection
-   measures embedded in the Skills, including but not limited to
-   zero-width Unicode watermarks, installation fingerprints, content
-   hashes, or manifest files.
-
-6. NO WARRANTY
+5. NO WARRANTY
    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
    EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
    MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
@@ -45,4 +39,4 @@ personal, non-commercial purposes, subject to the following conditions:
    TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
    SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-For commercial redistribution licensing, contact the repository owner.
+For commercial use or redistribution licensing, contact the repository owner.

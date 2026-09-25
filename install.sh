@@ -126,23 +126,6 @@ else
   echo "  ⚠  scripts/ not found in repo — skipping (mc-cmo may not work)"
 fi
 
-# ── Fingerprint watermarking ────────────────────────────────────────────────
-# Embed invisible installation ID into all SKILL.md files for traceability
-
-FINGERPRINT="$SCRIPTS_DST/fingerprint.mjs"
-if [[ -f "$FINGERPRINT" ]] && command -v node &>/dev/null; then
-  echo "  🔏 Embedding installation fingerprint..."
-  FP_RESULT=$(node "$FINGERPRINT" --embed "$TARGET_DIR" 2>/dev/null || echo '{"error":true}')
-  FP_ID=$(echo "$FP_RESULT" | grep -o '"installationId":"[^"]*"' | cut -d'"' -f4)
-  if [[ -n "$FP_ID" ]]; then
-    echo "  ✅ Fingerprint: $FP_ID"
-  else
-    echo "  ⚠  Fingerprint embedding skipped (non-fatal)"
-  fi
-else
-  echo "  ⚠  Node.js not found or fingerprint.mjs missing — skipping watermark"
-fi
-
 echo ""
 echo "  Installed $installed skill(s) to $TARGET_DIR"
 echo "  Scripts installed to $SCRIPTS_DST"
