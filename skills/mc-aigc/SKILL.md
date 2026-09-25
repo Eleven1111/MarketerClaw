@@ -43,6 +43,14 @@ mc-aigc 解决的是：
 2. 读取 `brief.md`、`insight.md`、`product.md`、`content.md`（如存在）作为输入
 3. 产出写入 `campaigns/{project-slug}/aigc.md`
 
+### 合规底线（每份方案都要写进 aigc.md，mc-review 按 `ai-content` 规则拦截）
+
+- **标识**：发布到中国境内的 AI 生成图片、视频须加显式标识（角标、文字或语音提示），文件元数据保留隐式标识，不得删除或篡改（人工智能生成合成内容标识办法，2025-09-01 起）。海外平台按其规则声明：YouTube "Altered content"、TikTok "AI-generated"、Meta "AI info"。每条素材在素材矩阵里写明标识方式。
+- **不冒充真实用户**：AI 生成的人物只能作为品牌视觉或示意，不得呈现为"真实用户"的买家秀、证言或使用体验（广告法第二十八条；美国 16 CFR 465）。
+- **不生成功效对比**：护肤、减重、生发等功效的 Before/After 必须是基于真实测试的实拍，AI 不得生成"使用后"效果。
+- **不生成公众人物**：不用 AI 生成公众人物形象或声音做背书。
+- **数字人直播**：AI 生成的主播须标识，并在直播中持续提示（直播电商监督管理办法第三十七条）。
+
 ---
 
 ## 模块 1：品牌视觉语言系统（Prompt 基础层）
@@ -199,6 +207,7 @@ candid lifestyle photography, natural light, soft aesthetic,
 注意事项：
 - 避免：过度修图感、假笑、刻意摆拍
 - 加入：自然表情、真实环境细节、生活感道具
+- 合规：成图须加 AI 标识；配文不得写成"真实用户分享/买家秀"，也不得配使用效果描述
 ```
 
 **3. 广告 Banner（付费投放）**
@@ -216,7 +225,7 @@ advertising visual, clean text placement area on {方位},
 --ar {16:9 横版 / 9:16 竖版 / 1:1 方版}"
 
 高点击率视觉策略：
-- before/after 对比结构
+- 对比结构（非功效类：收纳前后、场景切换；功效类 before/after 只能用实拍，见合规底线）
 - 强视觉对比（产品vs背景）
 - 人物表情情绪带入
 - 数字/结果视觉化
@@ -297,7 +306,7 @@ slow motion 24fps cinematic"
 Kling 版本：
 "{人物描述}在{场景}中，{具体动作：涂抹产品/享受早晨仪式感}，
 自然光从窗户射入，温暖氛围，真实生活记录感，
-不是广告感，像朋友分享日常，
+生活记录感，节奏像朋友分享日常（发布时仍须加 AI 标识；商业合作须标"广告"），
 镜头跟随人物，轻微手持感"
 
 节奏参考：
@@ -307,22 +316,23 @@ Kling 版本：
 - 20-30s：品牌/产品特写（记忆锚点）
 ```
 
-**3. Before/After 效果视频**
+**3. Before/After 对比视频**
 
 ```markdown
 ## Before/After Prompt
 
-策略：最高转化率的视频类型之一，需要清晰的视觉对比
+策略：高转化的视频类型之一，但 AI 只能生成"外壳"，不能生成功效
 
-结构：
-Part 1 (Before)：{问题状态描述}，对比度稍低，色调偏冷/哑
-Part 2 (After)：{改善状态描述}，饱和度提升，色调暖且亮
+分工：
+- 功效类（护肤、减重、生发、美白等）：Before 与 After 画面必须是真实测试的实拍，
+  不调色、不修图、不做 morphing；AI 只生成片头、场景过渡、包装特写和字幕板
+- 非功效类（收纳、清洁效果演示、空间改造）：可用 AI 做示意，但须加 AI 标识，
+  且画面不得超出产品实测能达到的效果
 
-Prompt 要点：
-- Before：slightly dull skin, uneven tone, morning without skincare
-- After：glowing radiant skin, smooth texture, healthy luminosity
-- 过渡：smooth morphing transition / split screen comparison
-- 避免：过度夸张，失真，不真实的效果
+Prompt 要点（AI 负责的部分）：
+- 片头/转场：{品牌色} clean title card, product packaging hero shot, soft light
+- 过渡：split screen frame layout / wipe transition（中间嵌入实拍素材）
+- 禁止：生成"使用后"的皮肤、身材、发量等效果画面
 ```
 
 ---
@@ -413,7 +423,9 @@ AIGC 批量生产最大的问题是风格飘移。这是质检框架。
 ### 合规检查
 - [ ] 无侵权元素（知名人物/竞品/版权图案）
 - [ ] 无违禁内容
-- [ ] 效果类素材未过度夸张失实
+- [ ] 已加 AI 显式标识，元数据隐式标识未被清除；海外平台已勾选 AI 声明
+- [ ] AI 人物未被呈现为真实用户、买家秀或证言
+- [ ] 功效类 Before/After 为实拍，AI 未生成"使用后"效果
 ```
 
 ---
@@ -508,6 +520,7 @@ AIGC 批量生产最大的问题是风格飘移。这是质检框架。
    · 主要工具：{Midjourney / Kling / Runway / 组合}
    · 品牌视觉核心词：{3-5 个最关键的调性关键词}
    · 素材矩阵：{N 个平台，共 N 套素材}
+   · AI 标识：{显式标识位置 / 各平台声明方式}
 
 ➡️  下一步：{将 Prompt 导入对应工具生成 / 完成后进行品牌一致性质检}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
