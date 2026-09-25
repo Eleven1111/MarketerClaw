@@ -7,6 +7,7 @@ import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { tmpdir } from "node:os";
 import { extractDeliveryCard } from "../scripts/delivery-card.mjs";
+import { SKILLS } from "../scripts/sync-disciplines.mjs";
 
 const run = promisify(execFile);
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -34,6 +35,16 @@ const TEMPLATES = cardTemplates();
 
 test("every skill card template is found (guards against a vacuous loop)", () => {
   assert.ok(TEMPLATES.length >= 26, `only ${TEMPLATES.length} card templates found`);
+});
+
+test("every skill that finalizes a campaign file has its own card template", () => {
+  // finalize.mjs falls back to a generic card when none is found, so a skill
+  // with no template fails silently (mc-analytics had none until 2026-09).
+  const withCard = new Set(TEMPLATES.map((t) => t.skill));
+  const missing = Object.entries(SKILLS)
+    .filter(([skill, spec]) => spec.files && !withCard.has(skill))
+    .map(([skill]) => skill);
+  assert.deepEqual(missing, []);
 });
 
 test("each real skill card is extracted whole from the end of a document", () => {
