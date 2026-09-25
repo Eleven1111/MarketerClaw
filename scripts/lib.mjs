@@ -175,61 +175,90 @@ export function isBlockedIp(ip) {
 }
 
 /**
- * Resolve `hostname` and refuse if it lands on a private/loopback/reserved
- * address. Throws on refusal; callers report this as a blocked fetch, not a
- * generic network error, so it is never silently swallowed into "not found".
+ * Resolve `hostname` and refuse if any of its addresses is private/loopback/
+ * reserved — fetch may connect to whichever record it likes, so checking only
+ * the first one is not enough. Throws on refusal; callers report this as a
+ * blocked fetch, not a generic network error, so it is never silently
+ * swallowed into "not found". `lookup` is injectable for tests.
  */
-export async function assertPublicHost(hostname) {
-  let address;
+export async function assertPublicHost(hostname, lookup = dnsLookup) {
+  let records;
   try {
-    ({ address } = await dnsLookup(hostname));
+    records = await lookup(hostname, { all: true });
   } catch (err) {
     throw new Error(`DNS lookup failed for ${hostname}: ${err.message}`);
   }
-  if (isBlockedIp(address)) {
-    throw new Error(`Blocked: ${hostname} resolves to a private/reserved address (${address})`);
+  const addresses = (Array.isArray(records) ? records : [records]).map((r) => r.address);
+  const blocked = addresses.find(isBlockedIp);
+  if (addresses.length === 0 || blocked !== undefined) {
+    throw new Error(`Blocked: ${hostname} resolves to a private/reserved address (${blocked ?? "none"})`);
   }
-  return address;
+  return addresses[0];
 }
+
+export const MAX_REDIRECTS = 5;
+
+/** Refuse anything but http(s) on a public host. Returns the parsed URL or an error. */
+async function vetUrl(url, lookup) {
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return { error: `Invalid URL: ${url}` };
+  }
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    return { error: `Unsupported protocol: ${parsed.protocol}` };
+  }
+  try {
+    await assertPublicHost(parsed.hostname, lookup);
+  } catch (err) {
+    return { error: err.message };
+  }
+  return { parsed };
+}
+
+const fail = (error) => ({ ok: false, status: null, text: null, error });
 
 /**
  * SSRF-guarded fetch with a timeout. Resolves the hostname first and refuses
  * private/loopback/reserved targets before making the request.
+ *
+ * Redirects are never followed by fetch itself: a public host could answer
+ * 302 → http://127.0.0.1/… and fetch would read the private response back.
+ * With redirect "follow" (the default) each Location is vetted like the
+ * original URL, up to MAX_REDIRECTS hops; "manual" returns the 3xx as-is.
+ *
  * Returns { ok, status, text, error } — never throws for ordinary network
  * failures (timeout, DNS, connection refused); those come back as
  * `{ ok: false, error }` so callers can render a "warn/error" row instead of
  * crashing the whole audit run.
  */
-export async function safeFetch(url, { timeoutMs = 10_000, redirect = "follow" } = {}) {
-  let parsed;
-  try {
-    parsed = new URL(url);
-  } catch {
-    return { ok: false, status: null, text: null, error: `Invalid URL: ${url}` };
-  }
-  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-    return { ok: false, status: null, text: null, error: `Unsupported protocol: ${parsed.protocol}` };
-  }
-
-  try {
-    await assertPublicHost(parsed.hostname);
-  } catch (err) {
-    return { ok: false, status: null, text: null, error: err.message };
-  }
-
+export async function safeFetch(url, { timeoutMs = 10_000, redirect = "follow", lookup = dnsLookup } = {}) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const resp = await fetch(parsed.toString(), {
-      headers: DEFAULT_FETCH_HEADERS,
-      redirect,
-      signal: controller.signal,
-    });
-    const text = await resp.text();
-    return { ok: resp.ok, status: resp.status, text, error: null, headers: resp.headers };
+    let next = url;
+    for (let hop = 0; ; hop++) {
+      const { parsed, error } = await vetUrl(next, lookup);
+      if (error) return fail(error);
+      const resp = await fetch(parsed.toString(), {
+        headers: DEFAULT_FETCH_HEADERS,
+        redirect: "manual",
+        signal: controller.signal,
+      });
+      const location = resp.headers.get("location");
+      const isRedirect = resp.status >= 300 && resp.status < 400 && location;
+      if (!isRedirect || redirect === "manual") {
+        const text = await resp.text();
+        return { ok: resp.ok, status: resp.status, text, error: null, headers: resp.headers };
+      }
+      await resp.body?.cancel();
+      if (redirect === "error") return fail(`Redirected to ${location} (redirect: "error")`);
+      if (hop >= MAX_REDIRECTS) return fail(`Too many redirects (> ${MAX_REDIRECTS})`);
+      next = new URL(location, parsed).toString();
+    }
   } catch (err) {
-    const message = err.name === "AbortError" ? `Timed out after ${timeoutMs}ms` : err.message;
-    return { ok: false, status: null, text: null, error: message };
+    return fail(err.name === "AbortError" ? `Timed out after ${timeoutMs}ms` : err.message);
   } finally {
     clearTimeout(timer);
   }
