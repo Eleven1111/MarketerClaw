@@ -1,6 +1,7 @@
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
+import { gzipSync } from "node:zlib";
 import { safeFetch, assertPublicHost } from "../scripts/lib.mjs";
 
 // safeFetch vets the hostname it is given, but a public site can answer 302
@@ -28,6 +29,9 @@ before(async () => {
     if (req.url === "/loop") return redirect("/loop");
     if (req.url === "/secret") return res.end("INTERNAL-SECRET");
     if (req.url === "/ok") return res.end("public page");
+    if (req.url === "/big") return res.end("x".repeat(4096));
+    if (req.url === "/bomb")
+      return res.writeHead(200, { "Content-Encoding": "gzip" }).end(gzipSync(Buffer.alloc(8 * 1024 * 1024)));
     res.writeHead(404).end();
   });
   await new Promise((r) => server.listen(0, "127.0.0.1", r));
@@ -89,3 +93,19 @@ test("a host with any private address among its records is refused", async () =>
   assert.equal(res.ok, false);
   assert.match(res.error ?? "", /Blocked: mixed\.example .*10\.0\.0\.5/);
 });
+
+test("a body over maxBytes fails instead of being read into memory", async () => {
+  const res = await safeFetch(at("/big"), { resolveHost: publicTest, timeoutMs: 3000, maxBytes: 1024 });
+  assert.equal(res.ok, false);
+  assert.equal(res.text, null);
+  assert.match(res.error ?? "", /exceeds 1024 bytes/);
+  const fits = await safeFetch(at("/big"), { resolveHost: publicTest, timeoutMs: 3000, maxBytes: 4096 });
+  assert.equal(fits.text.length, 4096);
+});
+
+test("the default cap stops a gzip bomb that is small on the wire", async () => {
+  const res = await safeFetch(at("/bomb"), { resolveHost: publicTest, timeoutMs: 3000 });
+  assert.equal(res.ok, false);
+  assert.match(res.error ?? "", /exceeds 5242880 bytes/);
+});
+

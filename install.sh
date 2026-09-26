@@ -126,6 +126,19 @@ else
   echo "  ⚠  scripts/ not found in repo — skipping (mc-cmo may not work)"
 fi
 
+# Seed the brand memory. Skills read memory/brand-memory.md relative to the
+# workspace, so this only applies to --local; an existing file is never touched.
+MEMORY_SEED="$REPO_DIR/memory/brand-memory.md"
+if [[ "${1:-}" == "--local" && -f "$MEMORY_SEED" ]]; then
+  if [[ -e "$BASE_DIR/memory/brand-memory.md" ]]; then
+    echo "  ✓ memory/brand-memory.md already exists — left as is"
+  else
+    mkdir -p "$BASE_DIR/memory"
+    cp "$MEMORY_SEED" "$BASE_DIR/memory/brand-memory.md"
+    echo "  ✅ brand memory seed → $BASE_DIR/memory/brand-memory.md"
+  fi
+fi
+
 echo ""
 echo "  Installed $installed skill(s) to $TARGET_DIR"
 echo "  Scripts installed to $SCRIPTS_DST"
