@@ -28,7 +28,7 @@ before(() => {
   work = mkdtempSync(join(tmpdir(), "mc-install-"));
   const stage = join(work, "stage", "MarketerClaw-main");
   mkdirSync(stage, { recursive: true });
-  for (const entry of ["skills", "scripts", "install.sh"]) {
+  for (const entry of ["skills", "scripts", "memory/brand-memory.md", "install.sh"]) {
     cpSync(join(ROOT, entry), join(stage, entry), { recursive: true });
   }
   const tgz = join(work, "mc.tar.gz");
@@ -78,6 +78,25 @@ test("piped --local upgrade in a workspace with a prior install replaces skills 
   assert.equal(r.status, 0, r.stderr.toString());
   assert.equal(skillsIn(join(ws, "skills")).length, SKILL_COUNT);
   assert.notEqual(readFileSync(join(ws, "skills", "mc-aigc", "SKILL.md"), "utf-8"), "stale");
+});
+
+test("--local seeds memory/brand-memory.md once and never overwrites it", () => {
+  const ws = freshDir("ws-memory");
+  const home = freshDir("home-memory");
+  const seed = join(ws, "memory", "brand-memory.md");
+  assert.equal(runPiped(ws, home, ["--local"]).status, 0);
+  assert.equal(readFileSync(seed, "utf-8"), readFileSync(join(ROOT, "memory", "brand-memory.md"), "utf-8"));
+
+  writeFileSync(seed, "my brand notes");
+  const r = runPiped(ws, home, ["--local"]);
+  assert.equal(r.status, 0, r.stderr.toString());
+  assert.equal(readFileSync(seed, "utf-8"), "my brand notes");
+});
+
+test("global installs do not drop a memory/ dir next to the skills", () => {
+  const home = freshDir("home-nomem");
+  assert.equal(runPiped(freshDir("cwd-nomem"), home, ["--claude"]).status, 0);
+  assert.ok(!existsSync(join(home, ".claude", "memory")));
 });
 
 test("./install.sh --local run from a checkout root is a no-op, not a self-deletion", () => {

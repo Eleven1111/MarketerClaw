@@ -230,6 +230,8 @@ async function vetUrl(url, resolveHost) {
   }
 }
 
+const MAX_BODY_BYTES = 5 * 1024 * 1024;
+
 const fail = (error) => ({ ok: false, status: null, text: null, error });
 
 const DECODERS = { gzip: createGunzip, "x-gzip": createGunzip, deflate: createInflate, br: createBrotliDecompress };
@@ -240,7 +242,7 @@ const DECODERS = { gzip: createGunzip, "x-gzip": createGunzip, deflate: createIn
  * guard and "127.0.0.1" to the connection (DNS rebinding). The Host header,
  * TLS SNI and certificate check still use the original hostname.
  */
-function requestPinned(url, pinned, signal) {
+function requestPinned(url, pinned, signal, maxBytes) {
   const send = url.protocol === "https:" ? httpsRequest : httpRequest;
   const lookup = (_host, opts, cb) =>
     opts?.all ? cb(null, [pinned]) : cb(null, pinned.address, pinned.family);
@@ -259,7 +261,14 @@ function requestPinned(url, pinned, signal) {
         const readText = () =>
           new Promise((done, bad) => {
             const chunks = [];
-            body.on("data", (c) => chunks.push(c));
+            let size = 0;
+            body.on("data", (c) => {
+              size += c.length;
+              if (size <= maxBytes) return chunks.push(c);
+              body.destroy();
+              res.destroy();
+              bad(new Error(`Response body exceeds ${maxBytes} bytes`));
+            });
             body.on("end", () => done(Buffer.concat(chunks).toString("utf8")));
             body.on("error", bad);
             res.on("error", bad);
@@ -285,8 +294,13 @@ function requestPinned(url, pinned, signal) {
  * network failures (timeout, DNS, connection refused); those come back as
  * `{ ok: false, error }` so callers can render a "warn/error" row instead of
  * crashing the whole audit run. `resolveHost` is injectable for tests.
+ * `maxBytes` caps the decoded body, so a huge page or a compression bomb
+ * fails instead of filling memory.
  */
-export async function safeFetch(url, { timeoutMs = 10_000, redirect = "follow", resolveHost = assertPublicHost } = {}) {
+export async function safeFetch(
+  url,
+  { timeoutMs = 10_000, redirect = "follow", resolveHost = assertPublicHost, maxBytes = MAX_BODY_BYTES } = {},
+) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
@@ -294,7 +308,7 @@ export async function safeFetch(url, { timeoutMs = 10_000, redirect = "follow", 
     for (let hop = 0; ; hop++) {
       const { parsed, pinned, error } = await vetUrl(next, resolveHost);
       if (error) return fail(error);
-      const resp = await requestPinned(parsed, pinned, controller.signal);
+      const resp = await requestPinned(parsed, pinned, controller.signal, maxBytes);
       const location = resp.headers.get("location");
       const isRedirect = resp.status >= 300 && resp.status < 400 && location;
       if (!isRedirect || redirect === "manual") {
