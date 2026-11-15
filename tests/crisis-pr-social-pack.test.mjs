@@ -80,6 +80,11 @@ test("Shard B skills carry the crisis-PR & social governance upgrades", () => {
       "上线前 6 项防崩盘红蓝对抗门禁",
       "极端边界锁死与禁改铁律",
       "禁止中途修改核心获奖规则",
+      "上线后突发异常补救边界",
+      "增量补奖",
+      "可审计的风控证据",
+      "开放申诉通道",
+      "公开延期开奖",
       "规范促销行为暂行规定",
       "UGC 征集原创版权与肖像免责前置",
       "跨平台统一权威释疑锚点",
@@ -104,6 +109,8 @@ test("Shard B skills carry the crisis-PR & social governance upgrades", () => {
       "禁止通篇企业公关自夸腔",
       "日常体感参照物",
       "禁止在面向普通用户的内容里堆砌生僻工程缩写",
+      "实测续航 {X} 小时",
+      "不得用电池容量 mAh 直接换算天数",
     ],
     "mc-dashboard": [
       "「反虚荣水分」三项校准指标",
@@ -126,6 +133,21 @@ test("Shard B skills carry the crisis-PR & social governance upgrades", () => {
     );
     for (const a of anchors) assert.ok(text.includes(a), `${skill}/SKILL.md missing "${a}"`);
   }
+});
+
+test("sensory translation never converts raw battery capacity straight into days", () => {
+  const content = read("skills", "mc-content", "SKILL.md");
+  const rows = content.split("\n").filter((l) => l.trim().startsWith("|") && /mAh/.test(l));
+  for (const row of rows) {
+    assert.match(row, /不得/, `mAh appears as a translatable parameter, not a prohibition: ${row.trim()}`);
+  }
+});
+
+test("red-team gate keeps the remedy list after the 6-row table, not inside it", () => {
+  const campaign = read("skills", "mc-campaign", "SKILL.md");
+  const remedy = campaign.indexOf("上线后突发异常补救边界");
+  const row6 = campaign.indexOf("| ⑥ |");
+  assert.ok(row6 > 0 && remedy > row6, "remedy boundary must follow row ⑥ so the gate table stays intact");
 });
 
 test("new prohibitions are phrased with 禁止/不得, not 严禁 alone", () => {
