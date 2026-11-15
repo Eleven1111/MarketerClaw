@@ -127,8 +127,12 @@ oversaturated, unnatural colors, plastic skin, AI-looking artifacts
     "TECH_PARAMS": "{工具专属参数，如 Midjourney 的 --ar --style --v}"
   },
   "style_fidelity_anchors": [
-    "{跨素材/跨批次必须保持不变的锚点，如色彩系统的主色 hex、人物气质关键词——用于校验第 N 张图是否'跑偏'}"
+    "{30% 不变量识别骨架（跨全线/跨批次锁死，衔接 mc-brand 模块 5）：标志性构图留白比例、核心容器轮廓、主光影质地、品牌主色 hex——确保遮住 Logo 仍能 1 秒认出品牌}"
   ],
+  "variable_slots": {
+    "coding_mode": "{选定 mc-brand 模块 5 的系列化编码法：色相分线法 / 容器取景窗法 / 母体骨架局部变异法 / 模块化徽章矩阵法 / 固定影调自由构图法 / 双章并列联名锁定期}",
+    "sku_or_campaign_variants": "{70% 可变量延展槽位：随口味/功效切换的辅色、当季场景道具、模特互动姿态、各平台画幅裁切比例}"
+  },
   "negative_prompt": "{对应上方 全局 Negative Prompts 的 通用排除 + 品牌专属排除，拼成一个字符串}",
   "source_content_to_avoid": [
     "{品牌专属排除里每一条拆成独立条目，便于工具按条校验而非整段字符串匹配}"
@@ -142,7 +146,7 @@ oversaturated, unnatural colors, plastic skin, AI-looking artifacts
 }
 ```
 
-写入 `campaigns/{project-slug}/style/{style_id}.json`（若同一 campaign 需要多套风格 — 如主品牌风格 + 大促风格 — 每套一个文件，`version` 递增记录迭代历史，不覆盖旧版本）。`style_fidelity_anchors` 是最该被使用的字段：素材矩阵批量生成后，抽查新素材是否仍命中锚点，是校验"品牌视觉是否跑偏"最快的办法，比人工过一遍所有图快得多。
+写入 `campaigns/{project-slug}/style/{style_id}.json`（若同一 campaign 需要多套风格 — 如主品牌风格 + 大促风格 — 每套一个文件，`version` 递增记录迭代历史，不覆盖旧版本）。**「`style_fidelity_anchors`（30% 不变量骨架）+ `variable_slots`（70% 可变量槽位）」双字段配合使用**：前者锁死识别基因防批量跑偏，后者按 SKU/节点有序放开变化防审美疲劳，比人工逐张肉眼比对快得多。
 
 ---
 
@@ -412,6 +416,7 @@ AIGC 批量生产最大的问题是风格飘移。这是质检框架。
 
 ### 必须通过的品牌一致性检查
 - [ ] 色调是否在品牌色系范围内？
+- [ ] 遮住 Logo 与产品名，仍能凭 `style_fidelity_anchors`（30% 不变量骨架：构图留白/光影质地/容器轮廓）1 秒认出品牌，且跨 SKU/批次已按 `variable_slots`（70% 可变槽位）拉开新鲜感（既不呆板套模板也不风格飘移）？
 - [ ] 画面氛围是否符合品牌情绪定义？
 - [ ] 人物（如有）是否符合品牌目标人群形象？
 - [ ] 场景道具是否与品牌生活方式匹配？
