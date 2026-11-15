@@ -17,45 +17,56 @@ const TEMPLATES = join(ROOT, "templates");
 
 const LEGACY_OVERSIZE = { "mc-analytics": 883 };
 
-const NEGATION_G = /不得|不要|不能|禁止|不写|❌/g;
+// Valid negations only: excludes false-negation substrings 不得已/不得了/不得不/不要怕/不能不
+const NEGATION_G = /不得(?![已了不])|不要(?!怕)|不能(?!不)|禁止|不写|❌|严禁|绝不|切勿|杜绝|避免|(?<!切)勿/g;
 const SPEECH_G = /(?:["“]([^"”]*)["”]|「([^」]*)」|『([^』]*)』)/g;
 const CLAUSE_SPLIT = /[|，,；;。！？（）()]+|——|--/;
+const NB = "[^\\n，,；;。！？|]"; // in-clause gap char
 
 export const PR_CRISIS_BLACKHAT = [
-  { re: /制造[^\n，,；;。！？|]{0,6}供不应求(?:的)?假象/, why: "fake scarcity manipulation (反不正当竞争法 虚假宣传)" },
-  { re: /强行架离/, why: "forcibly removing complaining consumers on site (消费者权益保护法、治安管理处罚法)" },
-  { re: /花钱撤热搜/, why: "paid trending-topic removal (网络信息内容生态治理规定)" },
-  { re: /删帖压热搜/, why: "post deletion to suppress trending topics" },
-  { re: /不转不是中国人/, why: "coercive moral-blackmail share bait (诱导分享、广告法第九条第七项)" },
-  { re: /隐蔽软植不标广告/, why: "undisclosed covert advertising (互联网广告管理办法第九条)" },
+  { re: new RegExp(`制造${NB}{0,10}供不应求(?:的)?假象`), why: "fake scarcity manipulation (反不正当竞争法 虚假宣传)" },
+  { re: new RegExp(`强行${NB}{0,4}架离`), why: "forcibly removing complaining consumers on site (消费者权益保护法、治安管理处罚法)" },
+  { re: new RegExp(`花钱${NB}{0,4}撤${NB}{0,3}热搜`), why: "paid trending-topic removal (网络信息内容生态治理规定)" },
+  { re: /删帖[、，/\s]{0,2}压热搜/, why: "post deletion to suppress trending topics" },
+  { re: /不转不是[^\s，,；;。！？"'”」』（）()|]{1,8}/, why: "coercive moral-blackmail share bait (诱导分享、广告法第九条第七项)" },
+  { re: new RegExp(`隐蔽${NB}{0,3}软植${NB}{0,3}不标${NB}{0,2}广告`), why: "undisclosed covert advertising (互联网广告管理办法第九条)" },
 ];
 
 function isExcused(scope, re) {
   const termMatch = scope.match(re);
   if (!termMatch) return true;
-  // Negation must precede the banned practice within the same clause/quote
+  // A valid negation must precede the banned practice within the same clause/quote
   for (const neg of scope.matchAll(NEGATION_G)) {
     if (neg.index < termMatch.index) return true;
   }
   return false;
 }
 
+// Quotes and unquoted text are judged independently: a negated quote never shields
+// unquoted positive advice on the same line, and vice versa.
+function lineViolates(line, re) {
+  if (!re.test(line)) return false;
+  const speeches = [...line.matchAll(SPEECH_G)].map((m) => m[1] ?? m[2] ?? m[3]);
+  const outside = line.replace(SPEECH_G, "|");
+  const scopes = speeches.filter((s) => re.test(s));
+  const clauses = outside.split(CLAUSE_SPLIT).filter((c) => re.test(c));
+  scopes.push(...clauses);
+  // Term spans a clause separator (e.g. "删帖，压热搜"): judge the whole line
+  if (scopes.length === 0) scopes.push(re.test(outside) ? outside : line);
+  return scopes.some((s) => !isExcused(s, re));
+}
+
 export function violations(text, banned = PR_CRISIS_BLACKHAT) {
   const found = [];
-  text.split("\n").forEach((line, i) => {
-    const speeches = [...line.matchAll(SPEECH_G)].map((m) => m[1] ?? m[2] ?? m[3]);
-    const clauses = line.split(CLAUSE_SPLIT);
+  const lines = text.split("\n");
+  lines.forEach((line, i) => {
     for (const { re, why } of banned) {
-      if (!re.test(line)) continue;
-      const matchingSpeeches = speeches.filter((s) => re.test(s));
-      if (matchingSpeeches.length > 0) {
-        if (matchingSpeeches.every((s) => isExcused(s, re))) continue;
-      } else {
-        const matchingClauses = clauses.filter((c) => re.test(c));
-        const scopes = matchingClauses.length > 0 ? matchingClauses : [line];
-        if (scopes.every((s) => isExcused(s, re))) continue;
-      }
-      found.push(`L${i + 1}: ${line.trim().slice(0, 70)} — ${why}`);
+      if (lineViolates(line, re)) found.push(`L${i + 1}: ${line.trim().slice(0, 70)} — ${why}`);
+      // Single-newline split: scan the normalized join of adjacent lines for terms neither line holds alone
+      const next = lines[i + 1];
+      if (next === undefined || re.test(line) || re.test(next)) continue;
+      const joined = line.trimEnd() + next.trimStart();
+      if (lineViolates(joined, re)) found.push(`L${i + 1}-${i + 2}: ${joined.trim().slice(0, 70)} — ${why}`);
     }
   });
   return found;
@@ -191,6 +202,33 @@ test("PR_CRISIS_BLACKHAT scanner catches advice and multi-clause/table/quote byp
   for (const line of bypasses) {
     assert.ok(violations(line).length >= 1, `should catch adversarial bypass: ${line}`);
   }
+
+  // Verifier adversarial suite (18 cases): true = must flag, false = must pass
+  const verifierCases = [
+    ["不得已时可以花钱撤热搜", true],
+    ["不要怕花钱撤热搜，效果立竿见影", true],
+    ["不能不删帖压热搜", true],
+    ["连夜删帖、压热搜", true],
+    ["找渠道花钱撤掉热搜", true],
+    ["不转不是中华儿女，转发抽奖", true],
+    ['推荐做法：花钱撤热搜（参见"禁止花钱撤热搜"）', true],
+    ["必要时可以花钱撤\n热搜", true],
+    ["简直不得了地制造供不应求假象", true],
+    ["严禁花钱撤热搜", false],
+    ["我们绝不删帖压热搜", false],
+    ["切勿隐蔽软植不标广告", false],
+    ["杜绝强行架离维权顾客", false],
+    ["禁止：花钱撤热搜", false],
+    ["禁止辱骂；花钱撤热搜可以", true],
+    ["删帖压热搜是不得已的选择", true],
+    ["制造不会被发现的供不应求假象", true],
+    ["制造一种不会被发现的供不应求假象", true],
+  ];
+  assert.equal(verifierCases.length, 18);
+  const mismatched = verifierCases
+    .filter(([line, flag]) => (violations(line).length >= 1) !== flag)
+    .map(([line, flag]) => `${flag ? "missed" : "false positive"}: ${line}`);
+  assert.deepEqual(mismatched, []);
 });
 
 test("crisis triage pack (P0-1..3) anchors are wired with intact discipline blocks", () => {
@@ -213,6 +251,11 @@ test("crisis triage pack (P0-1..3) anchors are wired with intact discipline bloc
     "锁界致歉",
     "转换故事",
     "Mode B：品牌舆情与危机流速监控",
+    "判定顺序（自上而下，命中即停）",
+    "即使名义上符合国标",
+    "不得向发帖人寄送律师函",
+    "不得要求删帖或改口，不得索取无关个人信息，不得暗示法律后果，全程留痕",
+    "仅限完成致歉与受损个体赔付落定后启用",
   ]) {
     assert.ok(matrix.includes(anchor), `crisis-triage-matrix.md missing "${anchor}"`);
   }
@@ -236,7 +279,7 @@ test("crisis triage pack (P0-1..3) anchors are wired with intact discipline bloc
 
   const cmo = read("skills", "mc-cmo", "SKILL.md");
   const judgment = read("skills", "mc-cmo", "frameworks", "judgment.md");
-  for (const anchor of ["负面冲动发声拦截", "发公开声明辟谣", "发律师函警告网友", "Tier 1/2/3", "负面→危机三级前置分流门禁"]) {
+  for (const anchor of ["负面冲动发声拦截", "发公开声明辟谣", "发律师函警告网友", "Tier 1/2/3", "负面→危机三级前置分流门禁", "不可协商红线"]) {
     assert.ok(cmo.includes(anchor), `mc-cmo/SKILL.md missing "${anchor}"`);
   }
   for (const anchor of ["负面冲动发声", "逆火效应", "Tier 1/2/3"]) {
@@ -269,7 +312,8 @@ test("crisis triage pack (P0-1..3) anchors are wired with intact discipline bloc
   const review = read("skills", "mc-review", "SKILL.md");
   for (const anchor of [
     "危机声明反次生灾害 7 项否决检视",
-    "300–600 字",
+    "核心正式声明 ≤600 字",
+    "外包机构个人行为",
     "荒唐可笑",
     "行业惯例",
     "视觉物料周边泄密与 PII 脱敏审计",
