@@ -47,7 +47,7 @@ function isExcused(scope, re) {
 function lineViolates(line, re) {
   if (!re.test(line)) return false;
   const speeches = [...line.matchAll(SPEECH_G)].map((m) => m[1] ?? m[2] ?? m[3]);
-  const outside = line.replace(SPEECH_G, "|");
+  const outside = line.replace(SPEECH_G, "◇"); // inert token: must not be in CLAUSE_SPLIT, or it severs a negation from its object
   const scopes = speeches.filter((s) => re.test(s));
   const clauses = outside.split(CLAUSE_SPLIT).filter((c) => re.test(c));
   scopes.push(...clauses);
@@ -225,6 +225,14 @@ test("PR_CRISIS_BLACKHAT scanner catches advice and multi-clause/table/quote byp
     ["制造一种不会被发现的供不应求假象", true],
   ];
   assert.equal(verifierCases.length, 18);
+
+  // Negated prohibitions with inline quoted examples must not be split across the quote
+  for (const line of [
+    "不得以「限量」「抢不到」等人为制造供不应求假象",
+    "禁止让 KOC 以「素人自发分享」名义做隐蔽软植、不标广告",
+  ]) {
+    assert.equal(violations(line).length, 0, `inline-quote prohibition should pass: ${line}`);
+  }
   const mismatched = verifierCases
     .filter(([line, flag]) => (violations(line).length >= 1) !== flag)
     .map(([line, flag]) => `${flag ? "missed" : "false positive"}: ${line}`);
