@@ -17,7 +17,8 @@ const TEMPLATES = join(ROOT, "templates");
 const LEGACY_OVERSIZE = { "mc-analytics": 883 };
 
 const NEGATION = /不得|不要|不能|禁止|不写|❌/;
-const SPEECH = /[：:]\**\s*["“]([^"”]*)["”]/;
+const SPEECH_G = /[：:]\**\s*["“]([^"”]*)["”]/g;
+const CLAUSE_SPLIT = /[|，,；;。！？]+/;
 
 export const LEAN_BLACKHAT = [
   { re: /刷单/, why: "fake orders / brushing (反不正当竞争法第八条、网络反不正当竞争暂行规定第九条)" },
@@ -33,14 +34,25 @@ export const LEAN_BLACKHAT = [
   { re: /撞库/, why: "credential stuffing / illegal data matching" },
 ];
 
+function isExcused(scope, unless) {
+  return NEGATION.test(scope) || Boolean(unless && unless.test(scope));
+}
+
 export function violations(text, banned = LEAN_BLACKHAT) {
   const found = [];
   text.split("\n").forEach((line, i) => {
-    const speech = line.match(SPEECH)?.[1];
+    const speeches = [...line.matchAll(SPEECH_G)].map((m) => m[1]);
+    const clauses = line.split(CLAUSE_SPLIT);
     for (const { re, unless, why } of banned) {
       if (!re.test(line)) continue;
-      const scope = speech && re.test(speech) ? speech : line;
-      if (NEGATION.test(scope) || (unless && unless.test(scope))) continue;
+      const matchingSpeeches = speeches.filter((s) => re.test(s));
+      if (matchingSpeeches.length > 0) {
+        if (matchingSpeeches.every((s) => isExcused(s, unless))) continue;
+      } else {
+        const matchingClauses = clauses.filter((c) => re.test(c));
+        const scopes = matchingClauses.length > 0 ? matchingClauses : [line];
+        if (scopes.every((s) => isExcused(s, unless))) continue;
+      }
       found.push(`L${i + 1}: ${line.trim().slice(0, 70)} — ${why}`);
     }
   });
@@ -158,12 +170,14 @@ test("LEAN_BLACKHAT scanner: positive advice fails, prohibitions pass, quoted sp
   const quotedSpeechWithTrailingCaveat = [
     '· 裂变话术："转发合体红包到三个群立刻领现金"（禁止违规诱导）',
     '· 运营动作："先刷单把前二十条评价铺满"（不得被平台抓到）',
+    "禁止刷单冲销量，但可以用流量精灵把收藏加购率做高",
+    '对比话术：“正品足量不虚标” vs 违规话术：“第二批暗中掺水降成本”（禁止采用）',
+    "| 违规禁区 | 禁止刷单 | 建议改用短信轰炸唤醒老客 |",
   ];
   for (const line of quotedSpeechWithTrailingCaveat) {
-    assert.equal(
-      violations(line, LEAN_BLACKHAT).length,
-      1,
-      `quoted speech must still be flagged despite trailing note: ${line}`,
+    assert.ok(
+      violations(line, LEAN_BLACKHAT).length >= 1,
+      `adversarial bypass line must be flagged: ${line}`,
     );
   }
 });
