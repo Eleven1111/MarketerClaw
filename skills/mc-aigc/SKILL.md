@@ -187,7 +187,11 @@ product photography, commercial advertising,
 - 白底图：plain white background, professional product shot
 - 场景图：in-use scene, lifestyle context, {使用场景}
 - 成分图：key ingredient visual, {成分描述}, natural texture
+- 工艺质感变体：matte-gloss contrast（亮哑对比）、anodized / hammered metal texture、wabi-sabi ceramic texture（侘寂陶质）、raw material flat-lay（原料平铺）
+- 戏剧光影变体：top-down spotlight beam（顶光聚束）、water-ripple caustics（水波焦散光斑）
 ```
+
+> 质感与光影变体只用于氛围与构图，AI 生成图须按 `skills/mc-review/references/ai-content.md` 加标识；不得用 AI 生成或美化来伪造材质、实测效果或"用前/用后"对比。
 
 **2. 人物种草图（小红书/Instagram）**
 
